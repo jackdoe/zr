@@ -10,7 +10,9 @@ You can get the whole stackexchange from:
 
 archive.org/download/stackexchange/stackexchange_archive.torrent
 
-(at the time of writing this the last post is 2020-03-01T07:17:40.850)
+at the time of writing this the last post is 2020-03-01T07:17:40.850,
+and it is about 65G archived, if you select only stackovefrlow it will
+be 14GB archived, and when you unarchive it it will become about 80G.
 
 and you can use ZR for any of the stack exchange Posts.xml, though I
 only tested it with SO.
@@ -126,6 +128,8 @@ only have 2 cores anyway, so wont be much faster me)
 You can speed it up by increasing the -at-a-time factor (the bigger it
 is the more ram it will use, with 1k it will use few hundred MB or less)
 
+The total index size is about 100G (sqlite plus inverted index).
+and at least 2.5k inodes (depending on your blocksize)
 
 # Search (example)
 
