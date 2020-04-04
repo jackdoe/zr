@@ -174,7 +174,7 @@ func main() {
 			fmt.Printf("%s", BannerLeft(5, " ", strings.Split(post.String(), "\n")))
 		}
 	}
-	fmt.Printf("\ntotal: %v, took: %v", total, time.Since(t0))
+	fmt.Printf("\ntotal: %v, took: %v\n", total, time.Since(t0))
 }
 
 func BannerLeft(topDashLen int, prefix string, s []string) string {
