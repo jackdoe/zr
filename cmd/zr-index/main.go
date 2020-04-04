@@ -72,10 +72,9 @@ func main() {
 		n += len(posts)
 		if n%1000 == 0 {
 			took := time.Since(t0)
-			perSecond := float64(len(posts)) / took.Seconds()
+			perSecond := float64(n) / took.Seconds()
 			eta := float64(max-n) / perSecond
 			log.Printf("indexing ... %d, per second: %.2f, ~ETA: %.2f hours (%d left)", n, perSecond, eta/3600, max-n)
-			t0 = time.Now()
 		}
 	}
 }

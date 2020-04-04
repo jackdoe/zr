@@ -34,8 +34,6 @@ var DefaultNormalizer = []norm.Normalizer{
 	}),
 }
 
-const mask = (1 << 14) - 1
-
 var trimmer = tokenize.NewCustom(func(in []string) []string {
 	for i := range in {
 
@@ -43,10 +41,10 @@ var trimmer = tokenize.NewCustom(func(in []string) []string {
 
 		h := metro.Hash64Str(in[i], 0)
 
-		// 16k per starting character
-		// so overall 16_000 * 36, or about 700k files
+		// 65k per starting character
+		// so overall 65_000 * 36, or about 2.5 mil files
 
-		in[i] = fmt.Sprintf("%x_%c", h&mask, first)
+		in[i] = fmt.Sprintf("%x_%c", h&0x000000000000FFFF, first)
 	}
 	return in
 })

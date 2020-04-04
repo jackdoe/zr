@@ -80,7 +80,6 @@ func main() {
 			eta := float64(max-n) / perSecond
 			log.Printf("storing ... %d, per second: %.2f, ~ETA: %.2f hours (%d left)", n, perSecond, eta/3600, max-n)
 			tx = store.DB.Begin()
-			t0 = time.Now()
 		}
 
 		return nil

@@ -6,51 +6,11 @@ import (
 	"os"
 	"path"
 
-	lru "github.com/hashicorp/golang-lru"
 	"github.com/jinzhu/gorm"
 	_ "github.com/jinzhu/gorm/dialects/sqlite"
 	"github.com/rekki/go-query/util/analyzer"
 	"github.com/rekki/go-query/util/index"
 )
-
-type FDCache struct {
-	c *lru.Cache
-}
-
-func NewFDCache(n int) *FDCache {
-	c, _ := lru.NewWithEvict(n, func(k, v interface{}) {
-		v.(*os.File).Close()
-		log.Printf("closing %v", k)
-	})
-	return &FDCache{c: c}
-}
-
-func (x *FDCache) Close() {
-	for _, k := range x.c.Keys() {
-		v, ok := x.c.Get(k)
-		if ok {
-			_ = v.(*os.File).Close()
-		}
-	}
-}
-
-func (x *FDCache) Use(fn string, createFile func(fn string) (*os.File, error), cb func(*os.File) error) error {
-	v, ok := x.c.Get(fn)
-	if !ok {
-		_ = os.MkdirAll(path.Dir(fn), 0700)
-
-		f, err := createFile(fn)
-		if err != nil {
-			return err
-		}
-
-		x.c.Add(fn, f)
-
-		return cb(f)
-	} else {
-		return cb(v.(*os.File))
-	}
-}
 
 type Store struct {
 	DB     *gorm.DB
@@ -71,7 +31,7 @@ func NewStore(root string, maxfd int) (*Store, error) {
 
 	db.AutoMigrate(&Post{})
 
-	fdc := NewFDCache(maxfd)
+	fdc := index.NewFDCache(maxfd)
 
 	weight, err := os.OpenFile(path.Join(root, "weight"), os.O_CREATE|os.O_RDWR, 0600)
 	if err != nil {
