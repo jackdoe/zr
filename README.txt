@@ -266,5 +266,9 @@ Especially visualization wise, I think it can be done much better
   building it
 * build the same but for godoc, man and the linux kernel docs
 
+# What does ZR mean?
+
+nothing, just Z and R
+
 -b
 
