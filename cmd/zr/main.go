@@ -38,7 +38,7 @@ func main() {
 
 	t0 := time.Now()
 
-	store, err := data.NewStore(*root, 0)
+	store, err := data.NewStore(*root, 0, 0)
 	if err != nil {
 		panic(err)
 	}
@@ -47,30 +47,6 @@ func main() {
 	query := strings.Join(flag.Args(), " ")
 	if query == "" {
 		usage()
-	}
-
-	var q iq.Query
-
-	if *onlyTitle {
-		q = iq.And(store.Dir.Terms("title", query)...).SetBoost(2)
-	} else if *onlyBody {
-		q = iq.And(store.Dir.Terms("body", query)...).SetBoost(2)
-	} else {
-		q = iq.DisMax(
-			0.01,
-			iq.And(store.Dir.Terms("title", query)...).SetBoost(2),
-			iq.And(store.Dir.Terms("body", query)...).SetBoost(1),
-		)
-	}
-
-	if *tags != "" {
-		and := []iq.Query{q}
-		for _, v := range strings.Split(*tags, ",") {
-			if len(v) > 0 {
-				and = append(and, iq.And(store.Dir.Terms("tags", v)...).SetBoost(1))
-			}
-		}
-		q = iq.And(and...)
 	}
 
 	type hit struct {
@@ -82,44 +58,69 @@ func main() {
 	limit := *topN
 	total := 0
 
-	store.Dir.Foreach(q, func(did int32, score float32) {
-		var h hit
-		soscore, acceptedAnswerID, viewCount := store.ReadWeight(did)
+	for _, shard := range store.Shards {
+		var q iq.Query
 
-		h.id = did
-
-		h.score = float32(math.Log1p(float64(viewCount)))
-		if acceptedAnswerID > 0 {
-			h.score *= 10
-		}
-
-		if soscore < 0 {
-			h.score *= float32(soscore)
+		if *onlyTitle {
+			q = iq.And(shard.Terms("title", query)...).SetBoost(2)
+		} else if *onlyBody {
+			q = iq.And(shard.Terms("body", query)...).SetBoost(2)
 		} else {
-			h.score += float32(math.Log1p(float64(soscore)))
+			q = iq.DisMax(
+				0.01,
+				iq.And(shard.Terms("title", query)...).SetBoost(2),
+				iq.And(shard.Terms("body", query)...).SetBoost(1),
+			)
 		}
 
-		doInsert := false
-		if len(scored) < limit {
-			doInsert = true
-		} else if scored[len(scored)-1].score < h.score {
-			doInsert = true
-		}
-
-		if doInsert {
-			if len(scored) < limit {
-				scored = append(scored, h)
-			}
-			for i := 0; i < len(scored); i++ {
-				if scored[i].score < h.score {
-					copy(scored[i+1:], scored[i:])
-					scored[i] = h
-					break
+		if *tags != "" {
+			and := []iq.Query{q}
+			for _, v := range strings.Split(*tags, ",") {
+				if len(v) > 0 {
+					and = append(and, iq.And(shard.Terms("tags", v)...).SetBoost(1))
 				}
 			}
+			q = iq.And(and...)
 		}
-		total++
-	})
+		shard.Foreach(q, func(did int32, score float32) {
+			var h hit
+			soscore, acceptedAnswerID, viewCount := store.ReadWeight(did)
+
+			h.id = did
+
+			h.score = float32(math.Log1p(float64(viewCount)))
+			if acceptedAnswerID > 0 {
+				h.score *= 10
+			}
+
+			if soscore < 0 {
+				h.score *= float32(soscore)
+			} else {
+				h.score += float32(math.Log1p(float64(soscore)))
+			}
+
+			doInsert := false
+			if len(scored) < limit {
+				doInsert = true
+			} else if scored[len(scored)-1].score < h.score {
+				doInsert = true
+			}
+
+			if doInsert {
+				if len(scored) < limit {
+					scored = append(scored, h)
+				}
+				for i := 0; i < len(scored); i++ {
+					if scored[i].score < h.score {
+						copy(scored[i+1:], scored[i:])
+						scored[i] = h
+						break
+					}
+				}
+			}
+			total++
+		})
+	}
 
 	seen := map[int32]bool{}
 	for _, s := range scored {

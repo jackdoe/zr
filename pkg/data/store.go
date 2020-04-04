@@ -2,9 +2,13 @@ package data
 
 import (
 	"encoding/binary"
+	"fmt"
+	"io/ioutil"
 	"log"
 	"os"
 	"path"
+	"strings"
+	"sync"
 
 	"github.com/jinzhu/gorm"
 	_ "github.com/jinzhu/gorm/dialects/sqlite"
@@ -14,11 +18,12 @@ import (
 
 type Store struct {
 	DB     *gorm.DB
-	Dir    *index.DirIndex
+	Shards []*index.DirIndex
 	Weight *os.File
+	sync.RWMutex
 }
 
-func NewStore(root string, maxfd int) (*Store, error) {
+func NewStore(root string, nShards int, maxfd int) (*Store, error) {
 	err := os.MkdirAll(root, 0700)
 	if err != nil {
 		log.Fatal(err)
@@ -31,25 +36,43 @@ func NewStore(root string, maxfd int) (*Store, error) {
 
 	db.AutoMigrate(&Post{})
 
-	fdc := index.NewFDCache(maxfd)
+	shards := []*index.DirIndex{}
 
 	weight, err := os.OpenFile(path.Join(root, "weight"), os.O_CREATE|os.O_RDWR, 0600)
 	if err != nil {
 		panic(err)
 	}
 
-	di := index.NewDirIndex(path.Join(root, "inv"), fdc, map[string]*analyzer.Analyzer{
-		"title": DefaultAnalyzer,
-		"body":  DefaultAnalyzer,
-		"tags":  index.IDAnalyzer,
-	})
+	if nShards == 0 {
+		dir, err := ioutil.ReadDir(path.Join(root, "inv"))
+		if err == nil {
+			for _, f := range dir {
+				if strings.HasPrefix(f.Name(), "s_") {
+					nShards++
+				}
+			}
+		}
+	}
 
-	return &Store{DB: db, Dir: di, Weight: weight}, nil
+	for i := 0; i < nShards; i++ {
+		fdc := index.NewFDCache(maxfd / nShards)
+		di := index.NewDirIndex(path.Join(root, "inv", fmt.Sprintf("s_%d", i)), fdc, map[string]*analyzer.Analyzer{
+			"title": DefaultAnalyzer,
+			"body":  DefaultAnalyzer,
+			"tags":  index.IDAnalyzer,
+		})
+
+		shards = append(shards, di)
+	}
+
+	return &Store{DB: db, Shards: shards, Weight: weight}, nil
 }
 
 func (s *Store) Close() {
 	s.DB.Close()
-	s.Dir.Close()
+	for _, shard := range s.Shards {
+		shard.Close()
+	}
 	s.Weight.Close()
 }
 

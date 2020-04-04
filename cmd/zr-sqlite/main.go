@@ -30,7 +30,7 @@ func main() {
 		log.Fatal("need posts")
 	}
 
-	store, err := data.NewStore(*root, 0)
+	store, err := data.NewStore(*root, 0, 0)
 	if err != nil {
 		panic(err)
 	}
