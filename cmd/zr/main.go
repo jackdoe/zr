@@ -27,7 +27,7 @@ func main() {
 	onlyTitle := flag.Bool("only-title", false, "only search in the post's title (only questions have titles)")
 	onlyBody := flag.Bool("only-body", false, "only search in the post's body")
 	tags := flag.String("tags", "", "search only in those tags e.g. c,go,php")
-	topN := flag.Int("top", 10, "show top N question threads")
+	topN := flag.Int("top", 1, "show top N question threads")
 
 	flag.Usage = usage
 	flag.Parse()
