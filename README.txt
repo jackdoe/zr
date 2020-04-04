@@ -7,7 +7,10 @@ it is a local index of 2020 StackOverflow's Posts.xml (downloaded from
 archive.org) with about 43 million questions and answers.
 
 You can get the whole stackexchange from:
+
 archive.org/download/stackexchange/stackexchange_archive.torrent
+
+(at the time of writing this the last post is 2020-03-01T07:17:40.850)
 
 and you can use ZR for any of the stack exchange Posts.xml, though I
 only tested it with SO.
