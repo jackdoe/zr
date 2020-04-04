@@ -44,6 +44,10 @@ func NewStore(root string, maxfd int) (*Store, error) {
 		"tags":  index.IDAnalyzer,
 	})
 
+	di.DirHash = func(s string) string {
+		return string(s[0]) + string(s[len(s)-1])
+	}
+
 	return &Store{DB: db, Dir: di, Weight: weight}, nil
 }
 

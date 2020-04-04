@@ -39,7 +39,7 @@ type Post struct {
 	FavoriteCount    int     `xml:"FavoriteCount,attr"`
 	ScoreF           float32 `gorm:"-"`
 	Accepted         bool    `gorm:"-"`
-	Indexed          int32   `gorm:"indexed"`
+	Indexed          int32   `gorm:"index:idx_indexed"`
 }
 
 func (p *Post) IsQuestion() bool {
