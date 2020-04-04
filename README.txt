@@ -6,6 +6,13 @@
 it is a local index of 2020 StackOverflow's Posts.xml (downloaded from
 archive.org) with about 43 million questions and answers.
 
+You can get the whole stackexchange from:
+archive.org/download/stackexchange/stackexchange_archive.torrent
+
+and you can use ZR for any of the stack exchange Posts.xml, though I
+only tested it with SO.
+
+
 # Why?
 
 Since I went to live in the tty (https://txt.black/~jack/tty.txt), I
@@ -74,6 +81,12 @@ For the topN hits we query the sqlite database, find the question
 threads, sort the answers by score and pretty print them (see the
 example)
 
+Anyway, I am quite excited about this bloomy search, because you get
+some very interesting properties, first the probability of getting a
+mismatch decreases with the amount of tokens in the query, and so far
+I have been getting only good results. I am still learning how it
+behaves, but it is the first time I am exploring random in a search
+problem.
 
 # Install
 
