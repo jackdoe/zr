@@ -276,6 +276,13 @@ Nothing, just Z and R.
 
 Whats the fun in that?
 
+I tried few lsmt based stores (badger, rocksdb) but the cost of openning
+and closing the db is too high for command line app, so I went back to
+file based postings lists.
+
+Also tried roaring bitmaps to store the lists, but because so many are
+with close to zero documents the overhead is too high.
+
 # Conclusion
 
 Writing the whole project with minimal usage of the web was an amazing
