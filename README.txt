@@ -86,6 +86,7 @@ matching most of SO's questions (like 'a') it will load few million *
 4 bytes in memory, well the while database is about 45 million, so
 worse case you get ~200mb of data, so not the end of the world.
 
+
 After that it uses binary search and other tricks to iterate fast and
 do the intersection (you can check out github.com/rekki/go-query for
 more details). For each match the weights table is used to extract the
