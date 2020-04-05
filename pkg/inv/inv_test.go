@@ -47,7 +47,7 @@ func TestExampleDir(t *testing.T) {
 	}
 	defer os.RemoveAll(dir)
 
-	m, err := NewRocksIndex(dir, nil)
+	m, err := NewBadgerIndex(dir, nil)
 	if err != nil {
 		panic(err)
 	}
@@ -59,7 +59,7 @@ func TestExampleDir(t *testing.T) {
 	}
 
 	for i := len(list); i < 10000; i++ {
-		list = append(list, &ExampleCity{Name: fmt.Sprintf("London%d", i), Country: "UK", ID: int32(i)})
+		list = append(list, &ExampleCity{Name: fmt.Sprintf("%dLondon", i), Country: "UK", ID: int32(i)})
 	}
 	err = m.Index(toDocumentsID(list)...)
 	if err != nil {
