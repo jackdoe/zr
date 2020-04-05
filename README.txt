@@ -2,7 +2,7 @@
        with very low ram footprint
 
 
-Check out demo at:
+Check out the demo at:
 
   https://asciinema.org/a/MBxHLc93RCoQgNmJnjmMxKeCK
 
