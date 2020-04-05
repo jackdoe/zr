@@ -120,6 +120,7 @@ func main() {
 		}
 		total++
 	})
+	tookSoFar := time.Since(t0)
 
 	seen := map[int32]bool{}
 	for _, s := range scored {
@@ -174,7 +175,7 @@ func main() {
 			fmt.Printf("%s", BannerLeft(5, " ", strings.Split(post.String(), "\n")))
 		}
 	}
-	fmt.Printf("\ntotal: %v, took: %v\n", total, time.Since(t0))
+	fmt.Printf("\ntotal: %v, took: %v, without stdout: %v\n", total, time.Since(t0), tookSoFar)
 }
 
 func BannerLeft(topDashLen int, prefix string, s []string) string {
