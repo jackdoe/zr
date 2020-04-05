@@ -272,7 +272,7 @@ Especially visualization wise, I think it can be done much better.
 
 Nothing, just Z and R.
 
-# Why didn't you use some other search engine
+# Why didn't you use some other search engine?
 
 Whats the fun in that?
 
