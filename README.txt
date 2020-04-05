@@ -1,5 +1,5 @@
-# ZR - offline, local search of StackOverflow, with very low ram
-  footprint
+# ZR - offline, local search of StackOverflow
+       with very low ram footprint
 
 # What is it?
 
