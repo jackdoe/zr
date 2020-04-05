@@ -69,7 +69,8 @@ root/inv/g/hash(git)%0xffff_g
 root/inv/m/hash(merge)%0xffff_m
 
 It will read the contents and create two []int32 sorted lists (they
-are sorted by insertion order).
+are sorted by insertion order). You know how you can use the database
+as a filesystem? You can also use the filesystem as a database :D.
 
 Then it can efficiently merge them, so if you have a term that is
 matching most of SO's questions (like 'a') it will load few million *
@@ -269,6 +270,17 @@ Especially visualization wise, I think it can be done much better
 # What does ZR mean?
 
 nothing, just Z and R
+
+# Why didn't you use some other search engine
+
+Whats the fun in that?
+
+
+# Conclusion
+
+Writing the whole project with minimal usage of the web was an amazing
+experience, now 'zr git rebase faster' renders faster than 'man
+git-rebase'
 
 -b
 
