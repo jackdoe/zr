@@ -1,6 +1,11 @@
 # ZR - offline, local, serverless search of StackOverflow
        with very low ram footprint
 
+
+Check out demo at:
+
+      https://asciinema.org/a/MBxHLc93RCoQgNmJnjmMxKeCK
+
 # What is it?
 
 it is a local index of 2020 StackOverflow's Posts.xml (downloaded from
