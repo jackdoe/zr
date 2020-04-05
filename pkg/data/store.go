@@ -6,6 +6,7 @@ import (
 	"os"
 	"path"
 
+	"github.com/jackdoe/zr/pkg/inv"
 	"github.com/jinzhu/gorm"
 	_ "github.com/jinzhu/gorm/dialects/sqlite"
 	"github.com/rekki/go-query/util/analyzer"
@@ -14,7 +15,7 @@ import (
 
 type Store struct {
 	DB     *gorm.DB
-	Dir    *index.DirIndex
+	Dir    *inv.RocksIndex
 	Weight *os.File
 }
 
@@ -31,21 +32,18 @@ func NewStore(root string, maxfd int) (*Store, error) {
 
 	db.AutoMigrate(&Post{})
 
-	fdc := index.NewFDCache(maxfd)
-
 	weight, err := os.OpenFile(path.Join(root, "weight"), os.O_CREATE|os.O_RDWR, 0600)
 	if err != nil {
 		panic(err)
 	}
-
-	di := index.NewDirIndex(path.Join(root, "inv"), fdc, map[string]*analyzer.Analyzer{
+	os.MkdirAll(path.Join(root, "badger-inv"), 0700)
+	di, err := inv.NewRocksIndex(path.Join(root, "rocks-inv"), map[string]*analyzer.Analyzer{
 		"title": DefaultAnalyzer,
 		"body":  DefaultAnalyzer,
 		"tags":  index.IDAnalyzer,
 	})
-
-	di.DirHash = func(s string) string {
-		return string(s[0]) + string(s[len(s)-1])
+	if err != nil {
+		panic(err)
 	}
 
 	return &Store{DB: db, Dir: di, Weight: weight}, nil
