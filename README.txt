@@ -1,4 +1,4 @@
-# ZR - offline, local search of StackOverflow
+# ZR - offline, local, serverless search of StackOverflow
        with very low ram footprint
 
 # What is it?
