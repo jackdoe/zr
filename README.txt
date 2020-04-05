@@ -282,5 +282,10 @@ Writing the whole project with minimal usage of the web was an amazing
 experience, now 'zr git rebase master' renders faster than 'man
 git-rebase'.
 
+At some point I got stuck into adding sharding to maximize resource
+usage (and I did), but then I just thought: what about if I just chill
+and let it run over night, so it is done in 8 hours instead of 2-3?
+its not the end of the world.
+
 -b
 
