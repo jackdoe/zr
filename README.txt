@@ -266,6 +266,7 @@ Especially visualization wise, I think it can be done much better
 * upload the built index somewhere so people dont have to spend day
   building it
 * build the same but for godoc, man and the linux kernel docs
+* add PAGER support
 
 # What does ZR mean?
 
