@@ -11,12 +11,12 @@ You can get the whole stackexchange from:
 archive.org/download/stackexchange/stackexchange_archive.torrent
 
 at the time of writing this the last post is 2020-03-01T07:17:40.850,
-and it is about 65G archived, if you select only stackovefrlow it will
-be 14GB archived, and when you unarchive it it will become about 80G.
+and whe whole stackexchange is about 65G archived, if you select only
+stackovefrlow it will be 14GB archived, and when you unarchive it it
+will become about 80G.
 
 and you can use ZR for any of the stack exchange Posts.xml, though I
-only tested it with SO.
-
+only tested it with SO and superuser.
 
 # Why?
 
@@ -256,7 +256,7 @@ total: 2288, took: 23.726728ms
 The whole thing is free for all, so all patches are welcome
 (especially if it will make your tty life better).
 
-Especially visualization wise, I think it can be done much better
+Especially visualization wise, I think it can be done much better.
 
 # TODO
 
@@ -270,18 +270,17 @@ Especially visualization wise, I think it can be done much better
 
 # What does ZR mean?
 
-nothing, just Z and R
+Nothing, just Z and R.
 
 # Why didn't you use some other search engine
 
 Whats the fun in that?
 
-
 # Conclusion
 
 Writing the whole project with minimal usage of the web was an amazing
-experience, now 'zr git rebase faster' renders faster than 'man
-git-rebase'
+experience, now 'zr git rebase master' renders faster than 'man
+git-rebase'.
 
 -b
 
