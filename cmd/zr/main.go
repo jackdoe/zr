@@ -197,7 +197,7 @@ func main() {
 			fmt.Printf("%s", BannerLeft(5, " ", strings.Split(post.String(), "\n")))
 		}
 	}
-	fmt.Printf("\ntotal: %v, took: %v, without stdout: %v\n", total, time.Since(t0), tookSoFar)
+	fmt.Printf("\ntotal: %v, took: %v, without stdout: %v, query: <%s>\n", total, time.Since(t0), tookSoFar, query)
 }
 
 func BannerLeft(topDashLen int, prefix string, s []string) string {
