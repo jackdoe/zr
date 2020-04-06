@@ -14,6 +14,7 @@ import (
 func main() {
 	root := flag.String("root", util.GetDefaultRoot(), "index root")
 	posts := flag.String("posts", "", "path to Posts.xml")
+	pmax := flag.Int("expected", 47000000, "expected numer of posts (for estimating the time)")
 	profBind := flag.String("prof-bind", "", "bind pprof (e.g. localhost:6060)")
 	flag.Parse()
 	if *profBind != "" {
@@ -38,7 +39,7 @@ func main() {
 
 	n := 0
 	t0 := time.Now()
-	max := 43000000
+	max := *pmax
 	tx := store.DB.Begin()
 	skip := 0
 	err = data.DecodeFile(*posts, func(p data.Post) error {
@@ -64,9 +65,12 @@ func main() {
 		}
 
 		if p.ParentID != 0 {
-			_, _, viewCount := store.ReadWeight(p.ParentID)
+			// query sqlite?
+			_, acceptedAnswerID, viewCount := store.ReadWeight(p.ParentID)
+			p.AcceptedAnswerID = acceptedAnswerID
 			p.ViewCount = viewCount / 10
 		}
+
 		if err := store.WriteWeight(p.PostID, p); err != nil {
 			panic(err)
 		}

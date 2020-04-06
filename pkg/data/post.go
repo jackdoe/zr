@@ -92,6 +92,23 @@ func (p *Post) IndexableFields() map[string][]string {
 
 	out["body"] = []string{p.Body}
 	out["title"] = []string{p.Title}
+
+	t := "question"
+	if p.IsAnswer() {
+		t = "answer"
+	}
+
+	out["type"] = []string{t}
+
+	accepted := (p.IsQuestion() && p.AcceptedAnswerID != 0) || p.AcceptedAnswerID == p.PostID
+
+	saccepted := "false"
+	if accepted {
+		saccepted = "true"
+	}
+
+	out["accepted"] = []string{saccepted}
+
 	for _, t := range strings.Split(p.Tags, "<") {
 		t = strings.Trim(t, ">")
 		if len(t) > 0 {

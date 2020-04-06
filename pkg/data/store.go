@@ -39,9 +39,11 @@ func NewStore(root string, maxfd int) (*Store, error) {
 	}
 
 	di := index.NewDirIndex(path.Join(root, "inv"), fdc, map[string]*analyzer.Analyzer{
-		"title": DefaultAnalyzer,
-		"body":  DefaultAnalyzer,
-		"tags":  index.IDAnalyzer,
+		"title":    DefaultAnalyzer,
+		"body":     DefaultAnalyzer,
+		"tags":     index.IDAnalyzer,
+		"accepted": index.IDAnalyzer,
+		"type":     index.IDAnalyzer,
 	})
 
 	di.DirHash = func(s string) string {

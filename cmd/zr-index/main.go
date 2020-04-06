@@ -16,6 +16,7 @@ func main() {
 	root := flag.String("root", util.GetDefaultRoot(), "index root")
 	atatime := flag.Int("at-a-time", 1000, "how many at a time")
 	maxopen := flag.Int("max-fd", 1000, "max open fd")
+	pmax := flag.Int("expected", 47000000, "expected numer of posts (for estimating the time)")
 	onlyAccepted := flag.Bool("only-accepted", false, "only questions with accepted answers")
 	onlyWithAnswers := flag.Bool("only-with-answers", false, "only questions with at least 1 answer")
 	onlyNScore := flag.Int("at-least-score", -1000, "only questions with at least that much score")
@@ -41,7 +42,7 @@ func main() {
 
 	n := 0
 	t0 := time.Now()
-	max := 43000000
+	max := *pmax
 
 	type Stats struct {
 		NoAccept int

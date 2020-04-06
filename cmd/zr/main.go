@@ -26,9 +26,12 @@ func main() {
 	root := flag.String("root", util.GetDefaultRoot(), "index root")
 	onlyTitle := flag.Bool("only-title", false, "only search in the post's title (only questions have titles)")
 	onlyBody := flag.Bool("only-body", false, "only search in the post's body")
+	onlyQuestions := flag.Bool("only-questions", false, "only search in the questions")
+	onlyAnswers := flag.Bool("only-answers", false, "only search in the answers")
+	onlyAccepted := flag.Bool("only-accepted", false, "only questions and their accepted answer")
 	tags := flag.String("tags", "", "search only in those tags e.g. c,go,php")
 	topN := flag.Int("top", 1, "show top N question threads")
-
+	debug := flag.Bool("debug", false, "debug")
 	flag.Usage = usage
 	flag.Parse()
 
@@ -49,30 +52,49 @@ func main() {
 		usage()
 	}
 
-	var q iq.Query
+	queries := []iq.Query{}
 
 	if *onlyTitle {
-		q = iq.And(store.Dir.Terms("title", query)...).SetBoost(2)
+		queries = append(queries, iq.And(store.Dir.Terms("title", query)...).SetBoost(2))
 	} else if *onlyBody {
-		q = iq.And(store.Dir.Terms("body", query)...).SetBoost(2)
+		queries = append(queries, iq.And(store.Dir.Terms("body", query)...).SetBoost(2))
 	} else {
-		q = iq.DisMax(
+		queries = append(queries, iq.DisMax(
 			0.01,
 			iq.And(store.Dir.Terms("title", query)...).SetBoost(2),
 			iq.And(store.Dir.Terms("body", query)...).SetBoost(1),
-		)
+		))
+	}
+
+	if *onlyAccepted {
+		queries = append(queries, iq.And(store.Dir.Terms("accepted", "true")...))
+	}
+
+	if *onlyQuestions {
+		queries = append(queries, iq.And(store.Dir.Terms("type", "question")...))
+	}
+
+	if *onlyAnswers {
+		queries = append(queries, iq.And(store.Dir.Terms("type", "answer")...))
 	}
 
 	if *tags != "" {
-		and := []iq.Query{q}
 		for _, v := range strings.Split(*tags, ",") {
 			if len(v) > 0 {
-				and = append(and, iq.And(store.Dir.Terms("tags", v)...).SetBoost(1))
+				queries = append(queries, iq.And(store.Dir.Terms("tags", v)...).SetBoost(1))
 			}
 		}
-		q = iq.And(and...)
 	}
 
+	var q iq.Query
+	if len(queries) == 1 {
+		q = queries[1]
+	} else {
+		q = iq.And(queries...)
+	}
+	if *debug {
+		log.Printf("QUERY: %s", q.String())
+	}
 	type hit struct {
 		score float32
 		id    int32
