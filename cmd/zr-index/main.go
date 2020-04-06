@@ -48,6 +48,7 @@ func main() {
 		NoAnswer int
 		NoView   int
 		NoScore  int
+		Skip     int
 	}
 
 	stats := Stats{}
@@ -96,16 +97,19 @@ func main() {
 			}
 
 			if (noAccepted && *onlyAccepted) || (noAnswers && *onlyWithAnswers) {
+				stats.Skip++
 				continue
 			}
 
 			if viewCount < *onlyWithNViews || p.Score < *onlyNScore {
 				if p.IsQuestion() {
+					stats.Skip++
 					continue
 				}
 
 				if acceptedAnswerID == p.PostID {
 					// always index the accepted answer
+					stats.Skip++
 					continue
 				}
 			}
