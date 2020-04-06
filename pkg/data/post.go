@@ -46,6 +46,10 @@ func (p *Post) IsQuestion() bool {
 	return p.PostTypeID == 1
 }
 
+func (p *Post) IsAnswer() bool {
+	return p.PostTypeID == 2
+}
+
 func (p *Post) String() string {
 	var sb strings.Builder
 
