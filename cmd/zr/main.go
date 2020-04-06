@@ -88,7 +88,7 @@ func main() {
 
 	var q iq.Query
 	if len(queries) == 1 {
-		q = queries[1]
+		q = queries[0]
 	} else {
 		q = iq.And(queries...)
 	}
