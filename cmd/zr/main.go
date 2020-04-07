@@ -22,6 +22,13 @@ func usage() {
 	os.Exit(2)
 }
 
+func andOrFirst(q []iq.Query) iq.Query {
+	if len(q) == 1 {
+		return q[0]
+	}
+
+	return iq.And(q...)
+}
 func main() {
 	root := flag.String("root", util.GetDefaultRoot(), "index root")
 	onlyTitle := flag.Bool("only-title", false, "only search in the post's title (only questions have titles)")
@@ -55,43 +62,38 @@ func main() {
 	queries := []iq.Query{}
 
 	if *onlyTitle {
-		queries = append(queries, iq.And(store.Dir.Terms("title", query)...).SetBoost(2))
+		queries = append(queries, andOrFirst(store.Dir.Terms("title", query)).SetBoost(2))
 	} else if *onlyBody {
-		queries = append(queries, iq.And(store.Dir.Terms("body", query)...).SetBoost(2))
+		queries = append(queries, andOrFirst(store.Dir.Terms("body", query)).SetBoost(2))
 	} else {
-		queries = append(queries, iq.DisMax(
-			0.01,
-			iq.And(store.Dir.Terms("title", query)...).SetBoost(2),
-			iq.And(store.Dir.Terms("body", query)...).SetBoost(1),
+		queries = append(queries, iq.Or(
+			andOrFirst(store.Dir.Terms("title", query)).SetBoost(2),
+			andOrFirst(store.Dir.Terms("body", query)).SetBoost(1),
 		))
 	}
 
 	if *onlyAccepted {
-		queries = append(queries, iq.And(store.Dir.Terms("accepted", "true")...))
+		queries = append(queries, andOrFirst(store.Dir.Terms("accepted", "true")))
 	}
 
 	if *onlyQuestions {
-		queries = append(queries, iq.And(store.Dir.Terms("type", "question")...))
+		queries = append(queries, andOrFirst(store.Dir.Terms("type", "question")))
 	}
 
 	if *onlyAnswers {
-		queries = append(queries, iq.And(store.Dir.Terms("type", "answer")...))
+		queries = append(queries, andOrFirst(store.Dir.Terms("type", "answer")))
 	}
 
 	if *tags != "" {
 		for _, v := range strings.Split(*tags, ",") {
 			if len(v) > 0 {
-				queries = append(queries, iq.And(store.Dir.Terms("tags", v)...).SetBoost(1))
+				queries = append(queries, andOrFirst(store.Dir.Terms("tags", v)).SetBoost(1))
 			}
 		}
 	}
 
-	var q iq.Query
-	if len(queries) == 1 {
-		q = queries[0]
-	} else {
-		q = iq.And(queries...)
-	}
+	q := andOrFirst(queries)
+
 	if *debug {
 		log.Printf("QUERY: %s", q.String())
 	}
