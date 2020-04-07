@@ -49,9 +49,8 @@ func NewStore(root string, maxfd int) (*Store, error) {
 	di.DirHash = func(s string) string {
 		return string(s[0]) + string(s[len(s)-1])
 	}
-	if os.Getenv("ZR_NOT_LAZY") != "true" {
-		di.Lazy = true
-	}
+
+	di.Lazy = false
 
 	return &Store{DB: db, Dir: di, Weight: weight}, nil
 }
