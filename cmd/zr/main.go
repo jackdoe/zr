@@ -106,7 +106,7 @@ func main() {
 	limit := *topN
 	total := 0
 
-	store.Dir.Foreach(q, func(did int32, score float32) {
+	store.Dir.Foreach(q, func(did int32, _score float32) {
 		var h hit
 		soscore, acceptedAnswerID, viewCount := store.ReadWeight(did)
 
