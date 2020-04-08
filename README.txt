@@ -142,8 +142,10 @@ This is quite slower, it indexes about 3k documents per second, so it
 takes like 5 hours to finish (it is easy to be sharded and etc, but I
 only have 2 cores anyway, so wont be much faster me)
 
-You can speed it up by increasing the -at-a-time factor (the bigger it
+You can speed it up by increasing the -batch-size factor (the bigger it
 is the more ram it will use, with 1k it will use few hundred MB or less)
+
+also: sudo mount -o remount,noatime,nodiratime,lazytime /
 
 The total index size is about 100G (sqlite plus inverted index).
 and at least 2.5k inodes (depending on your blocksize)

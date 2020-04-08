@@ -71,9 +71,7 @@ func NewStore(root string, kind string) *Store {
 
 	invRoot := path.Join(root, kind, "inv")
 	di := index.NewDirIndex(invRoot, fdc, map[string]*analyzer.Analyzer{
-		"title": DefaultAnalyzer,
-		"body":  DefaultAnalyzer,
-		"tags":  index.IDAnalyzer,
+		"body": DefaultAnalyzer,
 	})
 
 	di.DirHash = func(s string) string {
@@ -190,8 +188,9 @@ func (s *Store) Reindex(batchSize int) {
 		idx++
 		processed += len(ids)
 		took := time.Since(t0)
-		perSecond := float64(processed) / took.Seconds()
-		log.Printf("...left: %d, per second: %.2f, took: %v for %d", cnt-processed, perSecond, took, processed)
+		perSecond := float64(len(ids)) / took.Seconds()
+		log.Printf("...left: %d, per second: %.2f, took: %v, processed: %d", cnt-processed, perSecond, took, processed)
+		t0 = time.Now()
 	}
 }
 

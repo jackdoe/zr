@@ -63,7 +63,7 @@ var DefaultSearchTokenizer = []tokenize.Tokenizer{
 	trimmer,
 }
 
-const MAX_CHUNKS = 32
+const MAX_CHUNKS = 16
 
 // haha this is extreme hack
 var DefaultIndexTokenizer = []tokenize.Tokenizer{

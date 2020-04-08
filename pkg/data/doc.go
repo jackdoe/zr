@@ -19,9 +19,7 @@ func (d *Document) DocumentID() int32 {
 func (d *Document) IndexableFields() map[string][]string {
 	out := map[string][]string{}
 
-	out["title"] = []string{d.Title}
 	out["body"] = []string{d.Body}
-	out["tags"] = []string{d.Tags}
 
 	return out
 }
