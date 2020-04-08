@@ -59,19 +59,12 @@ func main() {
 		Body:       string(in),
 		ID:         id,
 		Tags:       *tags,
-		Indexed:    1,
+		Indexed:    0,
 	}
-
-	//	store.DB.LogMode()
 
 	tx := store.DB.Begin()
 	store.Upsert(tx, doc)
 	if err := tx.Commit().Error; err != nil {
-		panic(err)
-	}
-
-	err = store.Dir.Index(doc)
-	if err != nil {
 		panic(err)
 	}
 }
