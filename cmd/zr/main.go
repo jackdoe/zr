@@ -63,8 +63,8 @@ func main() {
 		})
 
 		sort.Slice(hits, func(i, j int) bool {
-			sa := hits[i].score
-			sb := hits[j].score
+			sa := int(hits[i].score + 0.5)
+			sb := int(hits[j].score + 0.5)
 
 			pa := hits[i].popularity
 			pb := hits[j].popularity
