@@ -1,155 +1,62 @@
 package main
 
 import (
+	"crypto/sha1"
 	"flag"
-	"log"
-	"net/http"
+	"fmt"
+	"io/ioutil"
 	_ "net/http/pprof"
-	"time"
+	"os"
+	"regexp"
 
 	"github.com/jackdoe/zr/pkg/data"
 	"github.com/jackdoe/zr/pkg/util"
-	"github.com/rekki/go-query/util/index"
+	"github.com/meilisearch/meilisearch-go"
 )
 
+func sha(b []byte) string {
+	s := sha1.New()
+	_, _ = s.Write(b)
+	return fmt.Sprintf("%x", s.Sum(nil))
+}
+
+var BASIC_NON_ALPHANUMERIC = regexp.MustCompile(`[^a-zA-Z0-9]+`)
+
 func main() {
-	root := flag.String("root", util.GetDefaultRoot(), "index root")
-	atatime := flag.Int("at-a-time", 1000, "how many at a time")
-	maxopen := flag.Int("max-fd", 1000, "max open fd")
-	pmax := flag.Int("expected", 47000000, "expected numer of posts (for estimating the time)")
-	onlyAccepted := flag.Bool("only-accepted", false, "only questions with accepted answers")
-	onlyWithAnswers := flag.Bool("only-with-answers", false, "only questions with at least 1 answer")
-	onlyNScore := flag.Int("at-least-score", -1000, "only questions with at least that much score")
-	onlyWithNViews := flag.Int("at-least-n-views", 0, "only question threads with at least N views")
-	pprofBind := flag.String("pprof-bind", "", "bind pprof (e.g. localhost:6060)")
+	masterKey := flag.String("master-key", "zr", "master key")
+	meiliURL := flag.String("meili", "http://127.0.0.1:7700", "meili search url")
+	tags := flag.String("tags", "", "tags")
+	popularity := flag.Int("popularity", 1, "popularity")
+	ptitle := flag.String("title", "", "title")
+	pid := flag.String("id", "", "the id of the object, empty means its the sha1 of the content")
+	kind := flag.String("kind", "unknown", "kind of object (prependet to the id)")
 	flag.Parse()
 
-	if *pprofBind != "" {
-		go func() {
-			log.Println(http.ListenAndServe(*pprofBind, nil))
-		}()
-	}
-
-	if *root == "" {
-		log.Fatal("need root")
-	}
-
-	store, err := data.NewStore(*root, *maxopen)
+	in, err := ioutil.ReadAll(os.Stdin)
 	if err != nil {
 		panic(err)
 	}
-	defer store.Close()
 
-	n := 0
-	t0 := time.Now()
-	max := *pmax
+	var client = meilisearch.NewClient(meilisearch.Config{
+		Host:   *meiliURL,
+		APIKey: *masterKey,
+	})
 
-	type Stats struct {
-		NoAccept int
-		NoAnswer int
-		NoView   int
-		NoScore  int
-		Skip     int
+	id := *pid
+	if id == "" {
+		id = sha(in)
 	}
 
-	stats := Stats{}
+	id = fmt.Sprintf("%s_%s", *kind, id)
+	id = BASIC_NON_ALPHANUMERIC.ReplaceAllString(id, "_")
 
-	for {
-		posts := []*data.Post{}
-		if err := store.DB.Table("posts").Where("indexed = 0").Limit(*atatime).Order("post_id asc").Find(&posts).Error; err != nil {
-			panic(err)
-		}
-
-		ids := []int32{}
-
-		filtered := []*data.Post{}
-
-		for _, p := range posts {
-			ids = append(ids, p.PostID)
-
-			acceptedAnswerID := p.AcceptedAnswerID
-			viewCount := p.ViewCount
-			if p.ParentID != 0 {
-				var parent data.Post
-				if err := store.DB.Find(&parent, p.ParentID).Error; err != nil {
-					panic(err)
-				}
-				viewCount = parent.ViewCount
-				acceptedAnswerID = parent.AcceptedAnswerID
-			}
-
-			noAccepted := acceptedAnswerID == 0
-			noAnswers := p.PostTypeID == 1 && p.AnswerCount == 0
-
-			if noAccepted {
-				stats.NoAccept++
-			}
-
-			if noAnswers {
-				stats.NoAnswer++
-			}
-
-			if viewCount < *onlyWithNViews {
-				stats.NoView++
-			}
-
-			if p.Score < *onlyNScore {
-				stats.NoScore++
-			}
-
-			if (noAccepted && *onlyAccepted) || (noAnswers && *onlyWithAnswers) {
-				stats.Skip++
-				continue
-			}
-
-			if viewCount < *onlyWithNViews || p.Score < *onlyNScore {
-				if p.IsQuestion() {
-					stats.Skip++
-					continue
-				}
-
-				if acceptedAnswerID == p.PostID {
-					// always index the accepted answer
-					stats.Skip++
-					continue
-				}
-			}
-
-			filtered = append(filtered, p)
-		}
-		if len(posts) == 0 {
-			break
-		}
-
-		err := store.Dir.Index(toDocs(filtered)...)
-		if err != nil {
-			panic(err)
-		}
-
-		tx := store.DB.Begin()
-		util.Chunked(100, len(ids), func(from, to int) {
-			if err := tx.Table("posts").Where("post_id IN (?)", ids[from:to]).Updates(map[string]interface{}{"indexed": 1}).Error; err != nil {
-				panic(err)
-			}
-		})
-		if err := tx.Commit().Error; err != nil {
-			panic(err)
-		}
-
-		n += len(ids)
-		if n%1000 == 0 {
-			took := time.Since(t0)
-			perSecond := float64(n) / took.Seconds()
-			eta := float64(max-n) / perSecond
-			log.Printf("indexing ... %d [stats: %+v], per second: %.2f, ~ETA: %.2f hours (%d left)", n, stats, perSecond, eta/3600, max-n)
-		}
+	doc := &data.Document{
+		Popularity: *popularity,
+		Title:      *ptitle,
+		Body:       string(in),
+		ID:         id,
+		Tags:       *tags,
 	}
-}
 
-func toDocs(in []*data.Post) []index.DocumentWithID {
-	out := make([]index.DocumentWithID, len(in))
-	for i, v := range in {
-		out[i] = index.DocumentWithID(v)
-	}
-	return out
+	util.AddAndWait(client, data.IndexName(*kind), []*data.Document{doc})
 }

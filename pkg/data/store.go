@@ -18,32 +18,30 @@ type Store struct {
 	Weight *os.File
 }
 
-func NewStore(root string, maxfd int) (*Store, error) {
+func NewStore(root string, kind string, maxfd int) (*Store, error) {
 	err := os.MkdirAll(root, 0700)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	db, err := gorm.Open("sqlite3", path.Join(root, "posts.db"))
+	db, err := gorm.Open("sqlite3", path.Join(root, kind, "main.db"))
 	if err != nil {
 		return nil, err
 	}
 
-	db.AutoMigrate(&Post{})
+	db.AutoMigrate(&Document{})
 
 	fdc := index.NewFDCache(maxfd)
 
-	weight, err := os.OpenFile(path.Join(root, "weight"), os.O_CREATE|os.O_RDWR, 0600)
+	weight, err := os.OpenFile(path.Join(root, kind, "weight"), os.O_CREATE|os.O_RDWR, 0600)
 	if err != nil {
 		panic(err)
 	}
 
-	di := index.NewDirIndex(path.Join(root, "inv"), fdc, map[string]*analyzer.Analyzer{
-		"title":    DefaultAnalyzer,
-		"body":     DefaultAnalyzer,
-		"tags":     index.IDAnalyzer,
-		"accepted": index.IDAnalyzer,
-		"type":     index.IDAnalyzer,
+	di := index.NewDirIndex(path.Join(root, kind, "inv"), fdc, map[string]*analyzer.Analyzer{
+		"title": DefaultAnalyzer,
+		"body":  DefaultAnalyzer,
+		"tags":  index.IDAnalyzer,
 	})
 
 	di.DirHash = func(s string) string {
@@ -61,26 +59,20 @@ func (s *Store) Close() {
 	s.Weight.Close()
 }
 
-func (s *Store) WriteWeight(did int32, p Post) error {
-	scoreB := make([]byte, 12)
-	binary.LittleEndian.PutUint32(scoreB, uint32(p.Score))
-	binary.LittleEndian.PutUint32(scoreB[4:], uint32(p.AcceptedAnswerID))
-	binary.LittleEndian.PutUint32(scoreB[8:], uint32(p.ViewCount))
+func (s *Store) WriteWeight(did int32, w int32) error {
+	b := []byte{0, 0, 0, 0}
+	binary.LittleEndian.PutUint32(b, uint32(w))
 
-	_, err := s.Weight.WriteAt(scoreB, int64(p.PostID)*int64(len(scoreB)))
+	_, err := s.Weight.WriteAt(b, int64(did)*int64(len(b)))
 	return err
 }
 
-func (s *Store) ReadWeight(did int32) (int, int32, int) {
-	b := make([]byte, 12)
+func (s *Store) ReadWeight(did int32) int32 {
+	b := []byte{0, 0, 0, 0}
 	_, err := s.Weight.ReadAt(b, int64(did)*int64(len(b)))
 	if err != nil {
-		return 0, 0, 0
+		return 0
 	}
 
-	soscore := int(binary.LittleEndian.Uint32(b))
-	acceptedAnswerID := int32(binary.LittleEndian.Uint32(b[4:]))
-	viewCount := int(binary.LittleEndian.Uint32(b[8:]))
-
-	return soscore, acceptedAnswerID, viewCount
+	return int32(binary.LittleEndian.Uint32(b))
 }
