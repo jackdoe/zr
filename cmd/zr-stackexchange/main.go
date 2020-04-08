@@ -14,7 +14,6 @@ import (
 
 	"github.com/jackdoe/zr/pkg/data"
 	"github.com/jackdoe/zr/pkg/util"
-	"github.com/meilisearch/meilisearch-go"
 	"jaytaylor.com/html2text"
 )
 
@@ -148,14 +147,16 @@ func DecodeFile(limit int, fn string, cb func(p Post) error) error {
 }
 
 func main() {
-	masterKey := flag.String("master-key", "zr", "master key")
-	meiliURL := flag.String("meili", "http://127.0.0.1:7700", "meili search url")
+	root := flag.String("root", util.GetDefaultRoot(), "root")
+	kind := flag.String("kind", "so", "kind of object (prependet to the id)")
+
 	posts := flag.String("posts", "", "path to Posts.xml")
-	kind := flag.String("kind", "so", "kind")
 	limit := flag.Int("debug-limit", 0, "just take N documents from Posts.xml")
+
 	batchSize := flag.Int("batch-size", 100, "insert N per chunk")
 
 	onlyAccepted := flag.Bool("only-accepted", false, "only questions with accepted answers")
+
 	onlyWithAnswers := flag.Bool("only-with-answers", false, "only questions with at least 1 answer")
 	onlyNScore := flag.Int("at-least-score", -1000, "only questions with at least that much score")
 	onlyWithNViews := flag.Int("at-least-n-views", 0, "only question threads with at least N views")
@@ -176,22 +177,20 @@ func main() {
 		log.Fatal("need posts")
 	}
 
+	if *root == "" {
+		log.Fatal("root")
+	}
+
 	if *kind == "" {
 		log.Fatal("kind")
 	}
 
-	indexName := data.IndexName(*kind)
 	t0 := time.Now()
 
+	store := data.NewStore(*root, *kind)
+	defer store.Close()
+
 	postCount := int(1)
-
-	client := meilisearch.NewClientWithCustomHTTPClient(meilisearch.Config{
-		Host:   *meiliURL,
-		APIKey: *masterKey,
-	}, http.Client{
-		Timeout: 20 * time.Second,
-	})
-
 	if *questions {
 		type Stats struct {
 			NoAccept int
@@ -242,15 +241,17 @@ func main() {
 				return nil
 			}
 
-			batch = append(batch, toDoc(*kind, p))
+			batch = append(batch, toDoc(p))
 
 			if len(batch) > *batchSize {
-				util.AddAndWait(client, indexName, batch)
+				store.BulkUpsert(batch)
+
 				batch = []*data.Document{}
 
 				took := time.Since(t0)
 				perSecond := float64(postCount) / took.Seconds()
 				log.Printf("[first phase] storing questions [stats %+v] ... %d, per second: %.2f", stats, postCount, perSecond)
+				t0 = time.Now()
 			}
 
 			return nil
@@ -260,39 +261,43 @@ func main() {
 			panic(err)
 		}
 
-		util.AddAndWait(client, indexName, batch)
+		store.BulkUpsert(batch)
 	}
 
 	if *answers {
 		postCount = 0
-		namedBatch := map[string]*data.Document{}
+		namedBatch := map[int32]data.Document{}
 
 		err := DecodeFile(*limit, *posts, func(p Post) error {
 			if p.IsQuestion() || p.ParentID == 0 {
 				return nil
 			}
 
+			if p.Score < *onlyNScore {
+				return nil
+			}
+
 			postCount++
-			parentID := fmt.Sprintf("%s-%d", *kind, p.ParentID)
-			parent, ok := namedBatch[parentID]
+			parent, ok := namedBatch[p.ParentID]
 			if !ok {
-				err := client.Documents(indexName).Get(parentID, &parent)
-				if err != nil {
-					log.Printf("missing parent %v", parentID)
+				if err := store.DB.Where("id = ?", p.ParentID).First(&parent).Error; err != nil {
+					log.Printf("missing parent %v", p.ParentID)
 					return nil
 				}
+
 			}
 
 			parent.Body = parent.Body + "\n" + p.String()
+			namedBatch[p.ParentID] = parent
 
-			namedBatch[parentID] = parent
 			if len(namedBatch) > *batchSize {
-				util.AddAndWait(client, indexName, toSlice(namedBatch))
-				namedBatch = map[string]*data.Document{}
+				store.BulkUpsert(toSlice(namedBatch))
+
+				namedBatch = map[int32]data.Document{}
 				took := time.Since(t0)
 				perSecond := float64(postCount) / took.Seconds()
 				log.Printf("[second phase] storing answers ... %d, per second: %.2f", postCount, perSecond)
-
+				t0 = time.Now()
 			}
 			return nil
 		})
@@ -300,11 +305,11 @@ func main() {
 		if err != nil {
 			panic(err)
 		}
-		util.AddAndWait(client, indexName, toSlice(namedBatch))
+		store.BulkUpsert(toSlice(namedBatch))
 	}
 }
 
-func toDoc(kind string, v Post) *data.Document {
+func toDoc(v Post) *data.Document {
 	popularity := v.ViewCount
 
 	doc := &data.Document{
@@ -312,16 +317,16 @@ func toDoc(kind string, v Post) *data.Document {
 		Body:       v.String(),
 		Tags:       v.Tags,
 		Popularity: popularity,
-		ID:         fmt.Sprintf("%s-%d", kind, v.PostID),
+		ID:         fmt.Sprintf("%d", v.PostID),
 	}
 
 	return doc
 }
 
-func toSlice(in map[string]*data.Document) []*data.Document {
+func toSlice(in map[int32]data.Document) []*data.Document {
 	out := make([]*data.Document, 0, len(in))
 	for _, v := range in {
-		out = append(out, v)
+		out = append(out, &v)
 	}
 	return out
 }

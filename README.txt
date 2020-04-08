@@ -49,14 +49,14 @@ are used, and the first character of the token.
 for better explanation refer to the code in data.go:
 
 ```
-	first := in[i][0]
+	middle := s[len(s)/2]
 
-	h := metro.Hash64Str(in[i], 0)
+	h := metro.Hash64Str(s, 0)
 
 	// 65k per starting character
-	// so overall 65_000 * 36, or about 2.5 mil files
+	// so overall 65k * 36, or about 2.5 mil files
 
-	in[i] = fmt.Sprintf("%x_%c", h&0x000000000000FFFF, first)
+	return fmt.Sprintf("%x_%c", h&0x000000000000FFFF, middle)
 ```
 
 So this is about 2.5 million files, each containing 4 bytes per
@@ -75,7 +75,7 @@ loads []int32 array, then it does the query operation on it.
 Lets say we have a query "git merge" this will open 2 files
 
 root/inv/g/hash(git)%0xffff_g 
-root/inv/m/hash(merge)%0xffff_m
+root/inv/m/hash(merge)%0xffff_e
 
 It will read the contents and create two []int32 sorted lists (they
 are sorted by insertion order). You know how you can use the database
@@ -104,20 +104,28 @@ I have been getting only good results. I am still learning how it
 behaves, but it is the first time I am exploring random in a search
 problem.
 
+There is one more trick being used, in order to prefer things on the
+top of the files (threads) more than the bottom, I split the blob in
+32 chunks, with chunk = max(32,sqrt(line number)), then on query time
+I create a dismax query with 32 AND queries.. as I said, quite funky!
+
 # Install
 
 $ go get github.com/jackdoe/zr/...
 $ go install github.com/jackdoe/zr/cmd/zr
-$ go install github.com/jackdoe/zr/cmd/zr-sqlite
-$ go install github.com/jackdoe/zr/cmd/zr-index
+$ go install github.com/jackdoe/zr/cmd/zr-stackexchange
+$ go install github.com/jackdoe/zr/cmd/zr-stdin
+$ go install github.com/jackdoe/zr/cmd/zr-reindex
 
 # Build the index
 
 1. First import the xml docs into sqlite and use html2text on the body,
    converd ids to strings and tec
 
-$ ~/go/bin/zr-sqlite -posts ~/downloads/Posts.xml
-# -root is by default ~/.zr-data
+$ ~/go/bin/zr-stackexchange -kind so -posts ~/stackoverflow/Posts.xml -index-questions
+$ ~/go/bin/zr-stackexchange -kind so -posts ~/stackoverflow/Posts.xml -index-answers
+
+-root is by default ~/.zr-data
 
 This will take about 2-3 hours, it is single threaded, scan and
 insert and it inserts about 5k documents per second.
@@ -126,11 +134,9 @@ You can restart it at any point, but it will start scanning from
 scratch, and parsing is like 50% of the cpu time, so try to keep it
 running until its done.
 
-2. After that you need to build the inverted index and the weights
-   table
+2. After that you need to build the inverted index
 
-$ ~/go/bin/zr-index -at-a-time 10000
-# -root is by default ~/.zr-data
+$ ~/go/bin/zr-reindex
 
 This is quite slower, it indexes about 3k documents per second, so it
 takes like 5 hours to finish (it is easy to be sharded and etc, but I
@@ -144,7 +150,7 @@ and at least 2.5k inodes (depending on your blocksize)
 
 # Search (example)
 
-$ ~/go/bin/zr git merge
+$ ~/go/bin/zr -kind so git merge | less
 # use zr -h to see the help
 
 ┌------------------------------
@@ -258,8 +264,6 @@ $ ~/go/bin/zr git merge
 └--
 ....
 
-total: 2288, took: 23.726728ms
-
 
 # Contribute
 
@@ -275,7 +279,6 @@ Especially visualization wise, I think it can be done much better.
 * remove questions without views or without answers etc
 * upload the built index somewhere so people dont have to spend day
   building it
-* build the same but for godoc, man and the linux kernel docs
 * add PAGER support
 
 # What does ZR mean?

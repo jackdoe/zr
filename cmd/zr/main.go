@@ -1,16 +1,15 @@
 package main
 
 import (
-	"encoding/json"
 	"flag"
 	"fmt"
 	"os"
+	"sort"
 	"strings"
 
 	"github.com/jackdoe/zr/pkg/data"
+	"github.com/jackdoe/zr/pkg/util"
 	_ "github.com/jinzhu/gorm/dialects/sqlite"
-	"github.com/meilisearch/meilisearch-go"
-	iq "github.com/rekki/go-query"
 )
 
 func usage() {
@@ -19,25 +18,19 @@ func usage() {
 	os.Exit(2)
 }
 
-func andOrFirst(q []iq.Query) iq.Query {
-	if len(q) == 1 {
-		return q[0]
-	}
-
-	return iq.And(q...)
+type scored struct {
+	rowID      int32
+	score      float32
+	popularity int32
 }
+
 func main() {
-	masterKey := flag.String("master-key", "zr", "master key")
-	meiliURL := flag.String("meili", "http://127.0.0.1:7700", "meili search url")
+	root := flag.String("root", util.GetDefaultRoot(), "root")
 	kind := flag.String("kind", "so,su,man", "csv list of indexes to search")
 	topN := flag.Int("top", 1, "show top N question threads")
+	debug := flag.Bool("debug", false, "show debug info")
 	flag.Usage = usage
 	flag.Parse()
-
-	var client = meilisearch.NewClient(meilisearch.Config{
-		Host:   *meiliURL,
-		APIKey: *masterKey,
-	})
 
 	query := strings.Join(flag.Args(), " ")
 	if query == "" {
@@ -49,27 +42,54 @@ func main() {
 			continue
 		}
 
-		resp, err := client.Search(data.IndexName(v)).Search(meilisearch.SearchRequest{
-			Query: query,
-			Limit: int64(*topN),
+		store := data.NewStore(*root, *kind)
+
+		hits := []scored{}
+		limit := *topN
+
+		q := store.MakeQuery("body", query)
+		if *debug {
+			fmt.Printf("query: %v\n", q.String())
+		}
+		store.Dir.Foreach(q, func(did int32, score float32) {
+			var h scored
+			popularity := store.ReadWeight(did)
+
+			h.rowID = did
+			h.popularity = popularity
+			h.score = score
+
+			hits = append(hits, h)
 		})
 
-		if err != nil {
-			panic(err)
+		sort.Slice(hits, func(i, j int) bool {
+			sa := hits[i].score
+			sb := hits[j].score
+
+			pa := hits[i].popularity
+			pb := hits[j].popularity
+
+			if sa == sb {
+				return pb < pa
+			}
+			return sb < sa
+		})
+
+		if len(hits) > limit {
+			hits = hits[:limit]
 		}
 
-		for _, h := range resp.Hits {
-			var d data.Document
-			b, err := json.Marshal(h)
-			if err != nil {
+		for _, h := range hits {
+			var doc data.Document
+			if err := store.DB.Model(data.Document{}).Find(&doc, h.rowID).Error; err != nil {
 				panic(err)
+			}
+			if *debug {
+				fmt.Printf("HIT: %+v\n%v", h, doc.Body)
+			} else {
+				fmt.Printf("%v", doc.Body)
 			}
 
-			err = json.Unmarshal(b, &d)
-			if err != nil {
-				panic(err)
-			}
-			fmt.Printf("%s", d.Body)
 		}
 	}
 }
