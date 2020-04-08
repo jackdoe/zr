@@ -42,7 +42,7 @@ func main() {
 			continue
 		}
 
-		store := data.NewStore(*root, *kind)
+		store := data.NewStore(*root, v)
 
 		hits := []scored{}
 		limit := *topN
