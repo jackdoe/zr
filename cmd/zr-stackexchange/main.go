@@ -281,7 +281,6 @@ func main() {
 			parent, ok := namedBatch[p.ParentID]
 			if !ok {
 				if err := store.DB.Where("id = ?", p.ParentID).First(&parent).Error; err != nil {
-					log.Printf("missing parent %v", p.ParentID)
 					return nil
 				}
 
@@ -293,11 +292,12 @@ func main() {
 			if len(namedBatch) > *batchSize {
 				store.BulkUpsert(toSlice(namedBatch))
 
-				namedBatch = map[int32]data.Document{}
 				took := time.Since(t0)
-				perSecond := float64(postCount) / took.Seconds()
+				perSecond := float64(len(namedBatch)) / took.Seconds()
 				log.Printf("[second phase] storing answers ... %d, per second: %.2f", postCount, perSecond)
 				t0 = time.Now()
+
+				namedBatch = map[int32]data.Document{}
 			}
 			return nil
 		})
