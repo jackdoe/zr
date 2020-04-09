@@ -9,6 +9,7 @@ import (
 	"strings"
 	"time"
 
+	lru "github.com/hashicorp/golang-lru"
 	"github.com/jackdoe/zr/pkg/util"
 	"github.com/jinzhu/gorm"
 	_ "github.com/jinzhu/gorm/dialects/sqlite"
@@ -27,6 +28,7 @@ type Store struct {
 
 type FDCache struct {
 	created map[string]bool
+	cache   *lru.Cache
 }
 
 func (x *FDCache) Close() {
@@ -39,13 +41,17 @@ func (x *FDCache) Use(fn string, createFile func(fn string) (*os.File, error), c
 		x.created[dir] = true
 	}
 
-	f, err := createFile(fn)
+	l, ok := x.cache.Get(fn)
+	if ok {
+		return cb(l.(*os.File))
+	}
 
+	f, err := createFile(fn)
 	if err != nil {
 		return err
 	}
 
-	defer f.Close()
+	x.cache.Add(fn, f)
 	return cb(f)
 }
 
@@ -62,7 +68,13 @@ func NewStore(root string, kind string) *Store {
 
 	db.AutoMigrate(&Document{})
 
-	fdc := &FDCache{created: map[string]bool{}}
+	c, _ := lru.NewWithEvict(8000, func(k, v interface{}) {
+		v.(*os.File).Close()
+	})
+	fdc := &FDCache{
+		created: map[string]bool{},
+		cache:   c,
+	}
 
 	weight, err := os.OpenFile(path.Join(root, kind, "weight"), os.O_CREATE|os.O_RDWR, 0600)
 	if err != nil {
@@ -143,7 +155,7 @@ func (s *Store) Reindex(batchSize int) {
 	_ = os.MkdirAll(invp, 0700)
 
 	log.Printf("setting all documents as not indexed")
-	if err := s.DB.Table("documents").Updates(map[string]interface{}{"indexed": 0}).Error; err != nil {
+	if err := s.DB.Table("documents").Where("indexed = 1").Updates(map[string]interface{}{"indexed": 0}).Error; err != nil {
 		panic(err)
 	}
 
