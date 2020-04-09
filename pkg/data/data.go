@@ -1,8 +1,8 @@
 package data
 
 import (
-	"fmt"
 	"math"
+	"strconv"
 	"strings"
 
 	"github.com/dgryski/go-metro"
@@ -40,15 +40,17 @@ var ascii = norm.NewCustom(func(s string) string {
 var DefaultNormalizer = []norm.Normalizer{ascii}
 
 var trim = func(s string) string {
-	middle := s[len(s)/2]
-
+	first := s[0]
 	h := metro.Hash64Str(s, 0)
 
 	// 65k per starting character
 	// so overall 65k * 36, or about 2.5 mil files
 
-	return fmt.Sprintf("%x_%c", h&0x000000000000FFFF, middle)
-
+	var sb strings.Builder
+	sb.WriteString(strconv.FormatUint(h&0x000000000000FFFF, 10))
+	sb.WriteRune('_')
+	sb.WriteRune(rune(first))
+	return sb.String()
 }
 
 var trimmer = tokenize.NewCustom(func(in []string) []string {
@@ -73,44 +75,46 @@ var DefaultIndexTokenizer = []tokenize.Tokenizer{
 		var sb strings.Builder
 
 		lineNo := 0
-		chunkID := 0
-		chunk := fmt.Sprintf("%d_", chunkID)
-		sb.WriteString(chunk)
-
+		chunkID := uint64(0)
+		sb.WriteString(strconv.FormatUint(chunkID, 10))
+		sb.WriteRune('_')
 		for _, current := range in {
-			hasChar := true
 			if len(current) == 0 {
 				continue
 			}
+			hasChar := false
 			for _, c := range current {
 				if c == '\n' || c == '\r' {
 					lineNo++
-					chunkID = int(math.Sqrt(float64(lineNo + 1)))
+					chunkID = uint64(math.Sqrt(float64(lineNo + 1)))
 					if chunkID > MAX_CHUNKS {
 						chunkID = MAX_CHUNKS
 					}
-					chunk = fmt.Sprintf("%d_", chunkID)
 				}
 
 				if c == ' ' || c == '\t' || c == '\n' || c == '\r' {
 					if sb.Len() > 0 && hasChar {
-						if sb.Len() > len(chunk) {
+						if sb.Len() > 0 {
+							sb.WriteRune('_')
+							sb.WriteString(strconv.FormatUint(chunkID, 10))
+
 							out = append(out, sb.String())
 						}
 						sb.Reset()
-						sb.WriteString(chunk)
+
 						hasChar = false
 					}
 				} else {
 					hasChar = true
 					sb.WriteRune(c)
 				}
-
 			}
-			if sb.Len() > len(chunk) {
+			if sb.Len() > 0 && hasChar {
+				sb.WriteRune('_')
+				sb.WriteString(strconv.FormatUint(chunkID, 10))
+
 				out = append(out, sb.String())
 				sb.Reset()
-				sb.WriteString(chunk)
 			}
 		}
 		return out

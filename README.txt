@@ -49,14 +49,14 @@ are used, and the first character of the token.
 for better explanation refer to the code in data.go:
 
 ```
-	middle := s[len(s)/2]
+	first := s[0]
 
 	h := metro.Hash64Str(s, 0)
 
 	// 65k per starting character
 	// so overall 65k * 36, or about 2.5 mil files
 
-	return fmt.Sprintf("%x_%c", h&0x000000000000FFFF, middle)
+	return fmt.Sprintf("%x_%c", h&0x000000000000FFFF, first)
 ```
 
 So this is about 2.5 million files, each containing 4 bytes per

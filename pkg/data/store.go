@@ -75,7 +75,7 @@ func NewStore(root string, kind string) *Store {
 	})
 
 	di.DirHash = func(s string) string {
-		return string(s[0]) + string(s[len(s)-1])
+		return string([]byte{s[0], s[len(s)-1]})
 	}
 
 	di.Lazy = false
@@ -100,7 +100,7 @@ func (s *Store) MakeQuery(field string, query string) iq.Query {
 	for i := 0; i < MAX_CHUNKS; i++ {
 		and := []iq.Query{}
 		for _, w := range ws {
-			term := trim(fmt.Sprintf("%d_%s", i, w))
+			term := trim(fmt.Sprintf("%s_%d", w, i))
 			q := s.Dir.NewTermQuery(field, term)
 			and = append(and, q)
 		}
@@ -124,11 +124,8 @@ func (s *Store) BulkUpsert(batch []*Document) {
 	}
 	tx := s.DB.Begin()
 
-	ids := make([]int32, 0, len(batch))
-
 	for _, d := range batch {
 		s.Upsert(tx, d)
-		ids = append(ids, d.RowID)
 	}
 
 	if err := tx.Commit().Error; err != nil {
