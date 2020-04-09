@@ -143,7 +143,7 @@ func (s *Store) Reindex(batchSize int) {
 	_ = os.MkdirAll(invp, 0700)
 
 	log.Printf("setting all documents as not indexed")
-	if err := s.DB.Table("documents").Updates(map[string]interface{}{"indexed": 0}).Error; err != nil {
+	if err := s.DB.Table("documents").Where("indexed = 1").Updates(map[string]interface{}{"indexed": 0}).Error; err != nil {
 		panic(err)
 	}
 
