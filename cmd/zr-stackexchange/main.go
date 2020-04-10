@@ -171,16 +171,16 @@ func main() {
 	postCount := int(1)
 
 	type Stats struct {
-		NoParent     int
-		FetchParent  int
-		HavingParent int
-		NoAccept     int
-		NoAnswer     int
-		NoView       int
-		NoScore      int
-		Questions    int
-		Answers      int
-		Skip         int
+		NoParent int
+		FP       int
+		HP       int
+		NoAccept int
+		NoAnswer int
+		NoView   int
+		NoScore  int
+		Q        int
+		A        int
+		Skip     int
 	}
 
 	stats := Stats{}
