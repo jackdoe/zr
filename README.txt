@@ -4,11 +4,11 @@
 
 Check out the demo at:
 
-  https://asciinema.org/a/FfPll8efB7V5LAz6mBC24j53d
+  https://asciinema.org/a/t7bLU9Vfg7MSHMEMTb87GDB3v
 
 or
 
-  $ asciinema play https://asciinema.org/a/FfPll8efB7V5LAz6mBC24j53d
+  $ asciinema play https://asciinema.org/a/t7bLU9Vfg7MSHMEMTb87GDB3v
 
 # What is it?
 
