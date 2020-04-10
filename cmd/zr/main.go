@@ -27,7 +27,7 @@ type scored struct {
 
 func main() {
 	root := flag.String("root", util.GetDefaultRoot(), "root")
-	kind := flag.String("k", "man,godoc,su,so", "csv list of indexes to search")
+	kind := flag.String("k", "godoc,man,su,so", "csv list of indexes to search")
 	topN := flag.Int("top", 1, "show top N question threads")
 	debug := flag.Bool("debug", false, "show debug info")
 	flag.Usage = usage
