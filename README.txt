@@ -140,7 +140,7 @@ running until its done.
 
 2. After that you need to build the inverted index
 
-$ ~/go/bin/zr-reindex
+$ ~/go/bin/zr-reindex -kind so
 
 This is quite slower, it indexes about 3k documents per second, so it
 takes like 5 hours to finish (it is easy to be sharded and etc, but I
