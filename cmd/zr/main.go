@@ -3,7 +3,10 @@ package main
 import (
 	"flag"
 	"fmt"
+	"io"
+	"log"
 	"os"
+	"os/exec"
 	"sort"
 	"strings"
 
@@ -24,6 +27,38 @@ type scored struct {
 	popularity int32
 }
 
+func getPager() string {
+	p := os.Getenv("PAGER")
+	if p != "" {
+		if p == "NOPAGER" {
+			return ""
+		}
+
+		exe, err := exec.LookPath(p)
+		if err != nil {
+			log.Fatal(err)
+		}
+		return exe
+	}
+
+	exe, err := exec.LookPath("less")
+	if err == nil {
+		return exe
+	}
+
+	exe, err = exec.LookPath("more")
+	if err == nil {
+		return exe
+	}
+
+	return ""
+}
+
+type WriterCloser interface {
+	Write(p []byte) (n int, err error)
+	Close() error
+}
+
 func main() {
 	root := flag.String("root", util.GetDefaultRoot(), "root")
 	kind := flag.String("kind", "so,su,man", "csv list of indexes to search")
@@ -35,6 +70,32 @@ func main() {
 	query := strings.Join(flag.Args(), " ")
 	if query == "" {
 		usage()
+	}
+
+	pager := getPager()
+	var less WriterCloser
+	if pager != "" {
+		cmd := exec.Command(pager)
+		r, w := io.Pipe()
+		cmd.Stdin = r
+		cmd.Stdout = os.Stdout
+		cmd.Stderr = os.Stderr
+		less = w
+		c := make(chan struct{})
+		go func() {
+			defer close(c)
+			err := cmd.Run()
+			if err != nil {
+				panic(err)
+			}
+		}()
+
+		defer func() {
+			less.Close()
+			<-c
+		}()
+	} else {
+		less = os.Stdout
 	}
 
 	for _, v := range strings.Split(*kind, ",") {
@@ -49,7 +110,7 @@ func main() {
 
 		q := store.MakeQuery("body", query)
 		if *debug {
-			fmt.Printf("query: <%s> %v\n", query, q.String())
+			fmt.Fprintf(less, "query: <%s> %v\n", query, q.String())
 		}
 		store.Dir.Foreach(q, func(did int32, score float32) {
 			var h scored
@@ -85,10 +146,10 @@ func main() {
 				panic(err)
 			}
 			if *debug {
-				fmt.Printf("HIT: %+v\n", h)
+				fmt.Fprintf(less, "HIT: %+v\n", h)
 			}
-			os.Stdout.Write(util.Decompress(doc.Body))
-
+			_, _ = less.Write(util.Decompress(doc.Body))
 		}
 	}
+
 }
