@@ -192,7 +192,7 @@ func main() {
 	count := 0
 	err := DecodeStream(*limit, decoder, func(p Post) error {
 		postCount++
-
+		count++
 		if p.Score < *onlyNScore {
 			stats.Skip++
 			stats.NoScore++
@@ -263,7 +263,6 @@ func main() {
 			thread.Body = util.JoinB(thread.Body, []byte{'\n'}, []byte(p.String(*urlBase)))
 		}
 
-		count++
 		if count > 1000 {
 			took := time.Since(t0)
 			perSecond := float64(count) / took.Seconds()
