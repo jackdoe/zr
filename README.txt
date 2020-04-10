@@ -1,7 +1,6 @@
 # ZR - offline, local, serverless search of StackOverflow
        with very low ram footprint
 
-
 Check out the demo at:
 
   https://asciinema.org/a/t7bLU9Vfg7MSHMEMTb87GDB3v
@@ -9,6 +8,19 @@ Check out the demo at:
 or
 
   $ asciinema play https://asciinema.org/a/t7bLU9Vfg7MSHMEMTb87GDB3v
+
+# CHANGELOG - 04/2019
+
+  * now you can index man pages as well (or any kinds of documents)
+  * scoring is much better by using some tricks to index the
+    sqrt of the line numbers (read details in 'How does it work?'
+  * added support for NOT queries
+      'reset password -mysql -amazon'
+    will produce:
+      (reset AND password) AND NOT (mysql OR amazon)
+  * pager support, tries to use less, more using:
+    https://github.com/jackdoe/go-pager
+  * multi index search
 
 # What is it?
 
