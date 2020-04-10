@@ -171,16 +171,17 @@ func main() {
 	postCount := int(1)
 
 	type Stats struct {
-		NoParent int
-		FP       int
-		HP       int
+		Q    int
+		A    int
+		Skip int
+
 		NoAccept int
 		NoAnswer int
 		NoView   int
 		NoScore  int
-		Q        int
-		A        int
-		Skip     int
+		NoParent int
+		FP       int
+		HP       int
 	}
 
 	stats := Stats{}
@@ -188,6 +189,7 @@ func main() {
 	namedBatch := map[int32]*data.Document{}
 
 	decoder := xml.NewDecoder(os.Stdin)
+	count := 0
 	err := DecodeStream(*limit, decoder, func(p Post) error {
 		postCount++
 
@@ -261,13 +263,17 @@ func main() {
 			thread.Body = util.JoinB(thread.Body, []byte{'\n'}, []byte(p.String(*urlBase)))
 		}
 
-		if len(namedBatch) > *batchSize {
-			store.BulkUpsert(toSlice(namedBatch))
-
+		count++
+		if count > 1000 {
 			took := time.Since(t0)
-			perSecond := float64(len(namedBatch)) / took.Seconds()
+			perSecond := float64(count) / took.Seconds()
 			log.Printf("storing threads [%+v] ... %d, per second: %.2f", stats, postCount, perSecond)
 			t0 = time.Now()
+			count = 0
+		}
+
+		if len(namedBatch) > *batchSize {
+			store.BulkUpsert(toSlice(namedBatch))
 
 			namedBatch = map[int32]*data.Document{}
 		}
