@@ -15,6 +15,10 @@ func ascii(s string) string {
 	var sb strings.Builder
 	hadSpace := false
 	for _, c := range s {
+		if c == '\n' || c == '\r' {
+			sb.WriteRune('\n')
+			continue
+		}
 		if ('a' <= c && c <= 'z') || ('A' <= c && c <= 'Z') || ('0' <= c && c <= '9') {
 			if 'A' <= c && c <= 'Z' {
 				c += 32
@@ -25,11 +29,7 @@ func ascii(s string) string {
 			if hadSpace {
 				continue
 			} else {
-				if c == '\n' {
-					sb.WriteRune('\n')
-				} else {
-					sb.WriteRune(' ')
-				}
+				sb.WriteRune(' ')
 				hadSpace = true
 			}
 		}

@@ -20,6 +20,7 @@ func main() {
 	root := flag.String("root", util.GetDefaultRoot(), "root")
 	kind := flag.String("k", "unknown", "kind of object (prependet to the id)")
 	id := flag.String("id", "", "object_id")
+	rid := flag.Int("rid", 0, "row id")
 	dumpPostings := flag.Bool("dump-postings", false, "dump postings")
 	flag.Parse()
 
@@ -27,7 +28,7 @@ func main() {
 		log.Fatal("root")
 	}
 
-	if *id == "" {
+	if *id == "" && *rid == 0 {
 		log.Fatal("id")
 	}
 
@@ -39,8 +40,14 @@ func main() {
 	defer store.Close()
 
 	var doc data.Document
-	if err := store.DB.Model(data.Document{}).Where("object_id=?", *id).First(&doc).Error; err != nil {
-		panic(err)
+	if *rid != 0 {
+		if err := store.DB.Model(data.Document{}).Where("row_id=?", *rid).First(&doc).Error; err != nil {
+			panic(err)
+		}
+	} else {
+		if err := store.DB.Model(data.Document{}).Where("object_id=?", *id).First(&doc).Error; err != nil {
+			panic(err)
+		}
 	}
 
 	doc.Body = util.Decompress(doc.Body)
