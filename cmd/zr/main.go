@@ -3,13 +3,11 @@ package main
 import (
 	"flag"
 	"fmt"
-	"io"
-	"log"
 	"os"
-	"os/exec"
 	"sort"
 	"strings"
 
+	"github.com/jackdoe/go-pager"
 	"github.com/jackdoe/zr/pkg/data"
 	"github.com/jackdoe/zr/pkg/util"
 	_ "github.com/jinzhu/gorm/dialects/sqlite"
@@ -27,38 +25,6 @@ type scored struct {
 	popularity int32
 }
 
-func getPager() string {
-	p := os.Getenv("PAGER")
-	if p != "" {
-		if p == "NOPAGER" {
-			return ""
-		}
-
-		exe, err := exec.LookPath(p)
-		if err != nil {
-			log.Fatal(err)
-		}
-		return exe
-	}
-
-	exe, err := exec.LookPath("less")
-	if err == nil {
-		return exe
-	}
-
-	exe, err = exec.LookPath("more")
-	if err == nil {
-		return exe
-	}
-
-	return ""
-}
-
-type WriterCloser interface {
-	Write(p []byte) (n int, err error)
-	Close() error
-}
-
 func main() {
 	root := flag.String("root", util.GetDefaultRoot(), "root")
 	kind := flag.String("kind", "so,su,man", "csv list of indexes to search")
@@ -72,31 +38,8 @@ func main() {
 		usage()
 	}
 
-	pager := getPager()
-	var less WriterCloser
-	if pager != "" {
-		cmd := exec.Command(pager)
-		r, w := io.Pipe()
-		cmd.Stdin = r
-		cmd.Stdout = os.Stdout
-		cmd.Stderr = os.Stderr
-		less = w
-		c := make(chan struct{})
-		go func() {
-			defer close(c)
-			err := cmd.Run()
-			if err != nil {
-				panic(err)
-			}
-		}()
-
-		defer func() {
-			less.Close()
-			<-c
-		}()
-	} else {
-		less = os.Stdout
-	}
+	less, close := pager.Pager("less", "more")
+	defer close()
 
 	for _, v := range strings.Split(*kind, ",") {
 		if v == "" {
@@ -151,5 +94,4 @@ func main() {
 			_, _ = less.Write(util.Decompress(doc.Body))
 		}
 	}
-
 }
