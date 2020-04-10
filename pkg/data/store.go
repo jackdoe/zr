@@ -94,7 +94,7 @@ func andOrFirst(q []iq.Query) iq.Query {
 func (s *Store) MakeQuery(field string, query string) iq.Query {
 	or := []iq.Query{}
 
-	normalizedQuery := ascii.Apply(strings.TrimSpace(query))
+	normalizedQuery := ascii(strings.TrimSpace(query))
 	ws := strings.Split(normalizedQuery, " ")
 
 	for i := 0; i < MAX_CHUNKS; i++ {

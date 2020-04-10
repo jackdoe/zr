@@ -23,12 +23,12 @@ empty
 `, "", " ", "a b   c", " "} {
 
 		fmt.Printf("\n%v\n", DefaultIndexTokenizer[0].Apply([]string{e}))
-		fmt.Printf("\n%v\n", DefaultIndexTokenizer[0].Apply([]string{ascii.Apply(e)}))
+		fmt.Printf("\n%v\n", DefaultIndexTokenizer[0].Apply([]string{ascii(e)}))
 
-		for _, v := range DefaultIndexTokenizer[0].Apply([]string{ascii.Apply(e)}) {
+		for _, v := range DefaultIndexTokenizer[0].Apply([]string{ascii(e)}) {
 			log.Printf("%v %v", v, trim(v))
 		}
-		fmt.Printf("\nNOEM: %v\n", ascii.Apply(e))
+		fmt.Printf("\nNOEM: %v\n", ascii(e))
 	}
 
 }
