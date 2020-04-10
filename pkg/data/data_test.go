@@ -1,34 +1,52 @@
 package data
 
 import (
-	"fmt"
-	"log"
 	"testing"
 )
 
-func TestTokenize(t *testing.T) {
-	for _, e := range []string{
-		`line 0
-line 1
-line 2
-line           3 a b c d
-line 5
-line 6
-line 7
-line 8
-line 9
-
-
-empty
-`, "", " ", "a b   c", " "} {
-
-		fmt.Printf("\n%v\n", DefaultIndexTokenizer[0].Apply([]string{e}))
-		fmt.Printf("\n%v\n", DefaultIndexTokenizer[0].Apply([]string{ascii(e)}))
-
-		for _, v := range DefaultIndexTokenizer[0].Apply([]string{ascii(e)}) {
-			log.Printf("%v %v", v, trim(v))
+func eq(a []string, b []string) bool {
+	if len(a) != len(b) {
+		return false
+	}
+	for i, x := range a {
+		if x != b[i] {
+			return false
 		}
-		fmt.Printf("\nNOEM: %v\n", ascii(e))
+	}
+	return true
+}
+func TestTokenize(t *testing.T) {
+	type cases struct {
+		in  string
+		out []string
+	}
+
+	for _, c := range []cases{
+		cases{
+			in: `a b c d
+e
+`,
+			out: []string{"a_0", "b_0", "c_0", "d_0", "e_1"},
+		},
+
+		cases{
+			in: `a b c d
+
+
+
+
+
+e
+
+x`,
+			out: []string{"a_0", "b_0", "c_0", "d_0", "e_2", "x_3"},
+		},
+	} {
+
+		r := DefaultIndexTokenizer[0].Apply([]string{c.in})
+		if !eq(c.out, r) {
+			t.Fatalf("got %v, expected: %v", r, c.out)
+		}
 	}
 
 }

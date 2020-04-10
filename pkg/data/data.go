@@ -44,22 +44,12 @@ func prefixLine(in []string) []string {
 
 	lineNo := 0
 	chunkID := uint64(0)
-	sb.WriteString(strconv.FormatUint(chunkID, 10))
-	sb.WriteRune('_')
 	for _, current := range in {
 		if len(current) == 0 {
 			continue
 		}
 		hasChar := false
 		for _, c := range current {
-			if c == '\n' || c == '\r' {
-				lineNo++
-				chunkID = uint64(math.Sqrt(float64(lineNo + 1)))
-				if chunkID > MAX_CHUNKS {
-					chunkID = MAX_CHUNKS
-				}
-			}
-
 			if c == ' ' || c == '\t' || c == '\n' || c == '\r' {
 				if sb.Len() > 0 && hasChar {
 					if sb.Len() > 0 {
@@ -75,6 +65,13 @@ func prefixLine(in []string) []string {
 			} else {
 				hasChar = true
 				sb.WriteRune(c)
+			}
+			if c == '\n' || c == '\r' {
+				lineNo++
+				chunkID = uint64(math.Sqrt(float64(lineNo + 1)))
+				if chunkID > MAX_CHUNKS {
+					chunkID = MAX_CHUNKS
+				}
 			}
 		}
 		if sb.Len() > 0 && hasChar {
