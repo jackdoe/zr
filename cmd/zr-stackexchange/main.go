@@ -171,14 +171,16 @@ func main() {
 	postCount := int(1)
 
 	type Stats struct {
-		NoParent  int
-		NoAccept  int
-		NoAnswer  int
-		NoView    int
-		NoScore   int
-		Questions int
-		Answers   int
-		Skip      int
+		NoParent     int
+		FetchParent  int
+		HavingParent int
+		NoAccept     int
+		NoAnswer     int
+		NoView       int
+		NoScore      int
+		Questions    int
+		Answers      int
+		Skip         int
 	}
 
 	stats := Stats{}
@@ -244,11 +246,14 @@ func main() {
 
 					return nil
 				}
+				stats.FetchParent++
 				// keep uncompressed while we store
 				d.Body = util.Decompress(d.Body)
 
 				namedBatch[p.ParentID] = &d
 				thread = &d
+			} else {
+				stats.HavingParent++
 			}
 			thread.Body = util.JoinB(thread.Body, []byte{'\n'}, []byte(p.String(*urlBase)))
 		}
