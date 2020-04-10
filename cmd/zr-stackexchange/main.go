@@ -190,10 +190,17 @@ func main() {
 	decoder := xml.NewDecoder(os.Stdin)
 	err := DecodeStream(*limit, decoder, func(p Post) error {
 		postCount++
+
+		if p.Score < *onlyNScore {
+			stats.Skip++
+			stats.NoScore++
+			return nil
+		}
+
 		if p.IsQuestion() {
 			noAccepted := p.AcceptedAnswerID == 0
 			noAnswers := p.AnswerCount == 0
-			stats.Questions++
+			stats.Q++
 			if noAccepted {
 				stats.NoAccept++
 			}
@@ -206,16 +213,12 @@ func main() {
 				stats.NoView++
 			}
 
-			if p.Score < *onlyNScore {
-				stats.NoScore++
-			}
-
 			if (noAccepted && *onlyAccepted) || (noAnswers && *onlyWithAnswers) {
 				stats.Skip++
 				return nil
 			}
 
-			if p.ViewCount < *onlyWithNViews || p.Score < *onlyNScore {
+			if p.ViewCount < *onlyWithNViews {
 				stats.Skip++
 				return nil
 			}
@@ -230,7 +233,7 @@ func main() {
 
 			namedBatch[p.PostID] = doc
 		} else {
-			stats.Answers++
+			stats.A++
 			if p.ParentID == 0 {
 				stats.NoParent++
 				stats.Skip++
@@ -241,19 +244,19 @@ func main() {
 			if !ok {
 				d := data.Document{}
 				if err := store.DB.Where("object_id = ?", p.ParentID).First(&d).Error; err != nil {
-					log.Printf("cant find parent %d", p.ParentID)
+					stats.NoParent++
 					stats.Skip++
 
 					return nil
 				}
-				stats.FetchParent++
+				stats.FP++
 				// keep uncompressed while we store
 				d.Body = util.Decompress(d.Body)
 
 				namedBatch[p.ParentID] = &d
 				thread = &d
 			} else {
-				stats.HavingParent++
+				stats.HP++
 			}
 			thread.Body = util.JoinB(thread.Body, []byte{'\n'}, []byte(p.String(*urlBase)))
 		}
