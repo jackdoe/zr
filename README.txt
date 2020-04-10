@@ -307,6 +307,9 @@ file based postings lists.
 Also tried roaring bitmaps to store the lists, but because so many are
 with close to zero documents the overhead is too high.
 
+Tried meilisearch as well, but it consumes a lot of disk and ram and
+it is slow to index on my laptop (8g ram).
+
 # Conclusion
 
 Writing the whole project with minimal usage of the web was an amazing
