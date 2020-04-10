@@ -41,7 +41,7 @@ func main() {
 	less, close := pager.Pager("less", "more")
 	defer close()
 
-	for i, v := range strings.Split(*kind, ",") {
+	for _, v := range strings.Split(*kind, ",") {
 		if v == "" {
 			continue
 		}
@@ -83,9 +83,8 @@ func main() {
 			hits = hits[:limit]
 		}
 
-		if i >= 1 {
-			fmt.Fprintf(less, "\n%s\n\n", util.Center(v, '█'))
-		}
+		fmt.Fprintf(less, "\n%s\n\n", util.Center(v, '█'))
+
 		for _, h := range hits {
 			var doc data.Document
 			if err := store.DB.Model(data.Document{}).Find(&doc, h.rowID).Error; err != nil {
