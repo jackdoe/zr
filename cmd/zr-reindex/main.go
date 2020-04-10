@@ -5,6 +5,7 @@ import (
 	"log"
 	"net/http"
 	_ "net/http/pprof"
+	"strings"
 
 	"github.com/jackdoe/zr/pkg/data"
 	"github.com/jackdoe/zr/pkg/util"
@@ -31,7 +32,13 @@ func main() {
 		log.Fatal("kind")
 	}
 
-	store := data.NewStore(*root, *kind)
-	defer store.Close()
-	store.Reindex(*batchSize)
+	for _, v := range strings.Split(*kind, ",") {
+		if v == "" {
+			continue
+		}
+
+		store := data.NewStore(*root, v)
+		defer store.Close()
+		store.Reindex(*batchSize)
+	}
 }
