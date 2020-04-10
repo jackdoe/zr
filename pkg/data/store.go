@@ -91,10 +91,37 @@ func andOrFirst(q []iq.Query) iq.Query {
 	return iq.And(q...)
 }
 
+func OrOrFirst(q []iq.Query) iq.Query {
+	if len(q) == 1 {
+		return q[0]
+	}
+
+	return iq.Or(q...)
+}
+
+func DisOrFirst(tie float32, q []iq.Query) iq.Query {
+	if len(q) == 1 {
+		return q[0]
+	}
+
+	return iq.DisMax(tie, q...)
+}
+
 func (s *Store) MakeQuery(field string, query string) iq.Query {
 	or := []iq.Query{}
 
-	normalizedQuery := ascii(strings.TrimSpace(query))
+	splitted := strings.Split(query, " ")
+	good := []string{}
+	bad := []string{}
+	for _, v := range splitted {
+		if strings.HasPrefix(v, "-") {
+			bad = append(bad, strings.TrimPrefix(v, "-"))
+		} else {
+			good = append(good, v)
+		}
+	}
+
+	normalizedQuery := ascii(strings.TrimSpace(strings.Join(good, " ")))
 	ws := strings.Split(normalizedQuery, " ")
 
 	for i := 0; i < MAX_CHUNKS; i++ {
@@ -107,7 +134,23 @@ func (s *Store) MakeQuery(field string, query string) iq.Query {
 		or = append(or, iq.Constant(float32(1+MAX_CHUNKS-i), andOrFirst(and)))
 	}
 
-	return iq.DisMax(0.01, or...)
+	normalizedQuery = ascii(strings.TrimSpace(strings.Join(bad, " ")))
+	ws = strings.Split(normalizedQuery, " ")
+	not := []iq.Query{}
+	for i := 0; i < MAX_CHUNKS; i++ {
+		for _, w := range ws {
+			term := trim(fmt.Sprintf("%s_%d", w, i))
+			q := s.Dir.NewTermQuery(field, term)
+			not = append(not, q)
+		}
+	}
+
+	dis := DisOrFirst(0.01, or)
+	if len(not) > 0 {
+		return iq.AndNot(OrOrFirst(not), dis)
+	}
+
+	return dis
 }
 
 func toDocumentWithID(in []*Document) []index.DocumentWithID {

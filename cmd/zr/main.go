@@ -49,7 +49,7 @@ func main() {
 
 		q := store.MakeQuery("body", query)
 		if *debug {
-			fmt.Printf("query: %v\n", q.String())
+			fmt.Printf("query: <%s> %v\n", query, q.String())
 		}
 		store.Dir.Foreach(q, func(did int32, score float32) {
 			var h scored
@@ -85,10 +85,9 @@ func main() {
 				panic(err)
 			}
 			if *debug {
-				fmt.Printf("HIT: %+v\n%v", h, doc.Body)
-			} else {
-				os.Stdout.Write(util.Decompress(doc.Body))
+				fmt.Printf("HIT: %+v\n", h)
 			}
+			os.Stdout.Write(util.Decompress(doc.Body))
 
 		}
 	}
