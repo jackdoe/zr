@@ -166,6 +166,7 @@ func (s *Store) Reindex(batchSize int) {
 		ids := make([]int32, 0, len(docs))
 
 		for _, d := range docs {
+			d.Body = util.Uncompress(d.Body)
 			ids = append(ids, d.RowID)
 		}
 
