@@ -125,11 +125,13 @@ $ go install github.com/jackdoe/zr/cmd/zr-reindex
 $ cat Posts.xml \
       | sort --stable -S 1G -t '"' -k 4 --numeric-sort \
       | tail -n +4 \
-      | zr-stackexchange -kind so -url-base stackoverflow.com
+      | zr-stackexchange -k so -url-base stackoverflow.com
 
 # sort the post by questions first and ignore </posts that will be on
 # top
 # -root is by default ~/.zr-data
+# -k means kind,
+#  I use so for stackoverflow, su for superuser and man for man
 
 This will take about 2-3 hours, it is single threaded, scan and
 insert and it inserts about 5k documents per second.
@@ -140,7 +142,7 @@ running until its done.
 
 2. After that you need to build the inverted index
 
-$ ~/go/bin/zr-reindex -kind so
+$ ~/go/bin/zr-reindex -k so
 
 This is quite slower, it indexes about 3k documents per second, so it
 takes like 5 hours to finish (it is easy to be sharded and etc, but I
@@ -161,7 +163,7 @@ the query for "git merge -ubuntu -windows" is translated to
 
     (git AND merge) AND NOT (ubuntu OR windows)
 
-$ ~/go/bin/zr -kind so git merge | less
+$ ~/go/bin/zr -k so git merge | less
 # use zr -h to see the help
 
 ┌------------------------------
@@ -287,10 +289,8 @@ Especially visualization wise, I think it can be done much better.
 
 * sharding if needed
 * remove stop words
-* remove questions without views or without answers etc
 * upload the built index somewhere so people dont have to spend day
   building it
-* add PAGER support
 
 # What does ZR mean?
 

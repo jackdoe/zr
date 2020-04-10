@@ -18,7 +18,7 @@ import (
 
 func main() {
 	root := flag.String("root", util.GetDefaultRoot(), "root")
-	kind := flag.String("kind", "unknown", "kind of object (prependet to the id)")
+	kind := flag.String("k", "unknown", "kind of object (prependet to the id)")
 	id := flag.String("id", "", "object_id")
 	dumpPostings := flag.Bool("dump-postings", false, "dump postings")
 	flag.Parse()

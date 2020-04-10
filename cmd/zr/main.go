@@ -14,7 +14,7 @@ import (
 )
 
 func usage() {
-	fmt.Fprintf(os.Stderr, "usage:\n\nzr [-top 10] [-kind so,man,su] query string\n\n")
+	fmt.Fprintf(os.Stderr, "usage:\n\nzr [-top 10] [-k so,man,su] query string\n\n")
 	flag.PrintDefaults()
 	os.Exit(2)
 }
@@ -27,7 +27,7 @@ type scored struct {
 
 func main() {
 	root := flag.String("root", util.GetDefaultRoot(), "root")
-	kind := flag.String("kind", "so,su,man", "csv list of indexes to search")
+	kind := flag.String("k", "so,su,man", "csv list of indexes to search")
 	topN := flag.Int("top", 1, "show top N question threads")
 	debug := flag.Bool("debug", false, "show debug info")
 	flag.Usage = usage

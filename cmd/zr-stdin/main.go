@@ -21,8 +21,7 @@ func sha(b []byte) string {
 
 func main() {
 	root := flag.String("root", util.GetDefaultRoot(), "root")
-	kind := flag.String("kind", "unknown", "kind of object (prependet to the id)")
-
+	kind := flag.String("k", "unknown", "kind of object (prependet to the id)")
 	tags := flag.String("tags", "", "tags")
 	popularity := flag.Int("popularity", 1, "popularity")
 	ptitle := flag.String("title", "", "title")

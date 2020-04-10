@@ -137,7 +137,7 @@ func DecodeStream(limit int, d *xml.Decoder, cb func(p Post) error) error {
 
 func main() {
 	root := flag.String("root", util.GetDefaultRoot(), "root")
-	kind := flag.String("kind", "so", "kind of object (prependet to the id)")
+	kind := flag.String("k", "so", "kind of object (prependet to the id)")
 	limit := flag.Int("debug-limit", 0, "just take N documents from Posts.xml")
 	batchSize := flag.Int("batch-size", 100, "insert N per chunk")
 	onlyAccepted := flag.Bool("only-accepted", false, "only questions with accepted answers")
