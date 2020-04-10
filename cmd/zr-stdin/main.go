@@ -57,7 +57,7 @@ func main() {
 		Popularity: *popularity,
 		Title:      *ptitle,
 		Body:       string(in),
-		ID:         id,
+		ObjectID:   id,
 		Tags:       *tags,
 		Indexed:    0,
 	}

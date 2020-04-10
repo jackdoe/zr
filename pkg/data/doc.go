@@ -1,8 +1,8 @@
 package data
 
 type Document struct {
-	RowID int32  `gorm:"primary_key;auto_increment:true;not null"`
-	ID    string `gorm:"unique_index"`
+	RowID    int32  `gorm:"primary_key;auto_increment:true;not null"`
+	ObjectID string `gorm:"unique_index"`
 
 	Title string `json:"title,omitempty"`
 	Body  string `json:"body,omitempty"`

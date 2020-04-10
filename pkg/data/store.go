@@ -122,6 +122,7 @@ func (s *Store) BulkUpsert(batch []*Document) {
 	if len(batch) == 0 {
 		return
 	}
+
 	tx := s.DB.Begin()
 
 	for _, d := range batch {
@@ -193,7 +194,8 @@ func (s *Store) Reindex(batchSize int) {
 
 func (s *Store) Upsert(tx *gorm.DB, d *Document) *Document {
 	rid := Document{}
-	tx.Model(Document{}).Select("row_id").Where("id = ?", d.ID).First(&rid)
+
+	tx.Model(Document{}).Select("row_id").Where("object_id = ?", d.ObjectID).First(&rid)
 
 	if rid.RowID > 0 {
 		d.RowID = rid.RowID

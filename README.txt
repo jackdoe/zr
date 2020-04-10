@@ -122,10 +122,14 @@ $ go install github.com/jackdoe/zr/cmd/zr-reindex
 1. First import the xml docs into sqlite and use html2text on the body,
    converd ids to strings and tec
 
-$ ~/go/bin/zr-stackexchange -kind so -posts ~/stackoverflow/Posts.xml -index-questions
-$ ~/go/bin/zr-stackexchange -kind so -posts ~/stackoverflow/Posts.xml -index-answers
+$ cat Posts.xml \
+      | sort --stable -S 1G -t '"' -k 4 --numeric-sort \
+      | tail -n +2 \
+      | zr-stackexchange -kind so -url-base stackoverflow.com
 
--root is by default ~/.zr-data
+# sort the post by questions first and ignore </posts that will be on
+# top
+# -root is by default ~/.zr-data
 
 This will take about 2-3 hours, it is single threaded, scan and
 insert and it inserts about 5k documents per second.
@@ -143,7 +147,8 @@ takes like 5 hours to finish (it is easy to be sharded and etc, but I
 only have 2 cores anyway, so wont be much faster me)
 
 You can speed it up by increasing the -batch-size factor (the bigger it
-is the more ram it will use, with 1k it will use few hundred MB or less)
+is the more ram it will use, with 1k it will use few hundred MB or
+less)
 
 also: sudo mount -o remount,noatime,nodiratime,lazytime /
 
