@@ -1,5 +1,10 @@
 package util
 
+import (
+	"fmt"
+	"strings"
+)
+
 func BannerLeft(topDashLen int, prefix string, s []string) string {
 	out := "┌"
 	for i := 0; i < topDashLen; i++ {
@@ -17,4 +22,10 @@ func BannerLeft(topDashLen int, prefix string, s []string) string {
 	out += "└--"
 	out += "\n"
 	return out
+}
+
+func Center(s string, around rune) string {
+	width := GetWidth()
+	side := strings.Repeat("█", (int(width)-len(s)-2)/2)
+	return fmt.Sprintf("%s %s %s", side, s, side)
 }

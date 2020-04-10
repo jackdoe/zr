@@ -27,7 +27,7 @@ type scored struct {
 
 func main() {
 	root := flag.String("root", util.GetDefaultRoot(), "root")
-	kind := flag.String("k", "so,su,man", "csv list of indexes to search")
+	kind := flag.String("k", "su,man", "csv list of indexes to search")
 	topN := flag.Int("top", 1, "show top N question threads")
 	debug := flag.Bool("debug", false, "show debug info")
 	flag.Usage = usage
@@ -41,7 +41,7 @@ func main() {
 	less, close := pager.Pager("less", "more")
 	defer close()
 
-	for _, v := range strings.Split(*kind, ",") {
+	for i, v := range strings.Split(*kind, ",") {
 		if v == "" {
 			continue
 		}
@@ -83,6 +83,9 @@ func main() {
 			hits = hits[:limit]
 		}
 
+		if i >= 1 {
+			fmt.Fprintf(less, "\n%s\n\n", util.Center(v, '█'))
+		}
 		for _, h := range hits {
 			var doc data.Document
 			if err := store.DB.Model(data.Document{}).Find(&doc, h.rowID).Error; err != nil {
