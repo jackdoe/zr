@@ -124,7 +124,7 @@ $ go install github.com/jackdoe/zr/cmd/zr-reindex
 
 $ cat Posts.xml \
       | sort --stable -S 1G -t '"' -k 4 --numeric-sort \
-      | tail -n +2 \
+      | tail -n +4 \
       | zr-stackexchange -kind so -url-base stackoverflow.com
 
 # sort the post by questions first and ignore </posts that will be on
