@@ -5,7 +5,7 @@ type Document struct {
 	ObjectID string `gorm:"unique_index"`
 
 	Title string `json:"title,omitempty"`
-	Body  string `json:"body,omitempty"`
+	Body  []byte `json:"body,omitempty"`
 	Tags  string `json:"tags,omitempty"`
 
 	Popularity int   `json:"popularity,omitempty"`
@@ -19,7 +19,7 @@ func (d *Document) DocumentID() int32 {
 func (d *Document) IndexableFields() map[string][]string {
 	out := map[string][]string{}
 
-	out["body"] = []string{d.Body}
+	out["body"] = []string{string(d.Body)}
 
 	return out
 }

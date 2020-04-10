@@ -238,7 +238,7 @@ func main() {
 				namedBatch[p.ParentID] = &d
 				thread = &d
 			}
-			thread.Body = thread.Body + "\n" + p.String(*urlBase)
+			thread.Body = util.CompressX(thread.Body, []byte{'\n'}, []byte(p.String(*urlBase)))
 		}
 
 		if len(namedBatch) > *batchSize {
@@ -267,7 +267,7 @@ func toDoc(base string, v Post) *data.Document {
 
 	doc := &data.Document{
 		Title:      v.Title,
-		Body:       v.String(base),
+		Body:       byte(v.String(base)),
 		Tags:       v.Tags,
 		Popularity: popularity,
 		ObjectID:   fmt.Sprintf("%d", v.PostID),

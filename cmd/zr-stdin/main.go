@@ -56,7 +56,7 @@ func main() {
 	doc := &data.Document{
 		Popularity: *popularity,
 		Title:      *ptitle,
-		Body:       string(in),
+		Body:       util.Compress(in),
 		ObjectID:   id,
 		Tags:       *tags,
 		Indexed:    0,

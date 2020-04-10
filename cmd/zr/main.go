@@ -87,7 +87,7 @@ func main() {
 			if *debug {
 				fmt.Printf("HIT: %+v\n%v", h, doc.Body)
 			} else {
-				fmt.Printf("%v", doc.Body)
+				os.Stdout.Write(util.Decompress(doc.Body))
 			}
 
 		}
