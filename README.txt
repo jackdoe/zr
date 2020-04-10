@@ -157,6 +157,10 @@ and at least 2.5k inodes (depending on your blocksize)
 
 # Search (example)
 
+the query for "git merge -ubuntu -windows" is translated to
+
+    (git AND merge) AND NOT (ubuntu OR windows)
+
 $ ~/go/bin/zr -kind so git merge | less
 # use zr -h to see the help
 
