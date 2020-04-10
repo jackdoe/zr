@@ -163,7 +163,7 @@ the query for "git merge -ubuntu -windows" is translated to
 
     (git AND merge) AND NOT (ubuntu OR windows)
 
-$ ~/go/bin/zr -k so git merge
+$ ~/go/bin/zr git merge
 # use zr -h to see the help
 
   ┌------------------------------
@@ -182,68 +182,34 @@ $ ~/go/bin/zr -k so git merge
   │ * A team member is modifying the templates for a website we are working on
   │ * They are adding some images to the images directory (but forgets to add them
   │ under source control)
-  │ * They are sending the images by mail, later, to me
-  │ * I'm adding the images under the source control and pushing them to GitHub
-  │ together with other changes
-  │ * They cannot pull updates from GitHub because Git doesn't want to overwrite
-  │ their files.
-  │
-  │ *This is the error I'm getting:*
-  │
-  │ >
-  │ >
-  │ >
-  │ > error: Untracked working tree file 'public/images/icon.gif' would be
-  │ > overwritten by merge
-  │ >
-  │ >
-  │
-  │ How do I force Git to overwrite them? The person is a designer - usually, I
-  │ resolve all the conflicts by hand, so the server has the most recent version
-  │ that they just need to update on their computer.
-  │
-  └--
-  ┌-----
-    A: stackoverflow.com/a/8888015 score: 9637, created: 2012-01-17T00:02:58.813
-
-    -----------------------------------------------------------------------------
-    Important: If you have any local changes, they will be lost. With or without
-    --hard option, any local commits that haven't been pushed will be lost. [*]
-    -----------------------------------------------------------------------------
-
-    If you have any files that are not tracked by Git (e.g. uploaded user
-    content), these files will not be affected.
-
-    I think this is the right way:
-
-    git fetch --all
-
-    Then, you have two options:
-
-    ....
-
-    Uncommitted changes, however (even staged), will be lost. Make sure to stash
-    and commit anything you need. For that you can run the following:
-
-    git stash
-
-    And then to reapply these uncommitted changes:
-
-    git stash pop
-
-  └--
-  ┌-----
-    A: stackoverflow.com/a/2798934 score: 906, created: 2010-05-09T19:45:21.437
-
-    Try this:
-
-    git reset --hard HEAD
-    git pull
-
-    It should do what you want.
-
-  └--
   ....
+
+  █████████████████████████████████████ man █████████████████████████████████████
+
+  GIT-MERGE-BASE(1)                 Git Manual                 GIT-MERGE-BASE(1)
+
+  NAME
+         git-merge-base - Find as good common ancestors as possible for a merge
+
+  SYNOPSIS
+         git merge-base [-a|--all] <commit> <commit>...
+         git merge-base [-a|--all] --octopus <commit>...
+         git merge-base --is-ancestor <commit> <commit>
+         git merge-base --independent <commit>...
+         git merge-base --fork-point <ref> [<commit>]
+
+  DESCRIPTION
+         git merge-base finds best common ancestor(s) between two commits to use
+         in a three-way merge. One common ancestor is better than another common
+         ancestor if the latter is an ancestor of the former. A common ancestor
+         that does not have any better common ancestor is a best common
+         ancestor, i.e. a merge base. Note that there can be more than one merge
+         base for a pair of commits.
+  ...
+
+searching in stackoverflow, superuser and man pages by default
+you can specify which index to use with `zr -k so,su,man`, by default it shows
+top result from each index, but you can use -top to specify how many per index.
 
 # index man pages using `zr-stdin`
 
