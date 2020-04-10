@@ -178,6 +178,7 @@ the query for "git merge -ubuntu -windows" is translated to
 $ ~/go/bin/zr git merge
 # use zr -h to see the help
 
+  █████████████████████████████████████ so █████████████████████████████████████
   ┌------------------------------
   │ Q: How do I force "git pull" to overwrite local files?
   │    tags:     <git><version-control><overwrite><git-pull><git-fetch>
