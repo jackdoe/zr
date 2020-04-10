@@ -192,10 +192,12 @@ func (s *Store) Reindex(batchSize int) {
 	}
 }
 
-func (s *Store) Upsert(tx *gorm.DB, d *Document) *Document {
+func (s *Store) Upsert(tx *gorm.DB, in *Document) *Document {
 	rid := Document{}
 
-	tx.Model(Document{}).Select("row_id").Where("object_id = ?", d.ObjectID).First(&rid)
+	tx.Model(Document{}).Select("row_id").Where("object_id = ?", in.ObjectID).First(&rid)
+
+	d := *in
 
 	if rid.RowID > 0 {
 		d.RowID = rid.RowID
@@ -203,7 +205,8 @@ func (s *Store) Upsert(tx *gorm.DB, d *Document) *Document {
 		d.RowID = 0
 	}
 
-	if err := tx.Model(Document{}).Save(d).Error; err != nil {
+	d.Body = util.Compress(d.Body)
+	if err := tx.Model(Document{}).Save(&d).Error; err != nil {
 		panic(err)
 	}
 
@@ -213,7 +216,7 @@ func (s *Store) Upsert(tx *gorm.DB, d *Document) *Document {
 		panic(err)
 	}
 
-	return d
+	return &d
 }
 
 func (s *Store) Close() {

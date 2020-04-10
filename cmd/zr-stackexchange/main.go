@@ -218,7 +218,15 @@ func main() {
 				return nil
 			}
 
-			namedBatch[p.PostID] = toDoc(*urlBase, p)
+			doc := &data.Document{
+				Title:      p.Title,
+				Body:       []byte(p.String(*urlBase)),
+				Tags:       p.Tags,
+				Popularity: p.ViewCount,
+				ObjectID:   fmt.Sprintf("%d", p.PostID),
+			}
+
+			namedBatch[p.PostID] = doc
 		} else {
 			stats.Answers++
 			if p.ParentID == 0 {
@@ -233,12 +241,16 @@ func main() {
 				if err := store.DB.Where("object_id = ?", p.ParentID).First(&d).Error; err != nil {
 					log.Printf("cant find parent %d", p.ParentID)
 					stats.Skip++
+
 					return nil
 				}
+				// keep uncompressed while we store
+				d.Body = util.Decompress(d.Body)
+
 				namedBatch[p.ParentID] = &d
 				thread = &d
 			}
-			thread.Body = util.CompressX(thread.Body, []byte{'\n'}, []byte(p.String(*urlBase)))
+			thread.Body = util.JoinB(thread.Body, []byte{'\n'}, []byte(p.String(*urlBase)))
 		}
 
 		if len(namedBatch) > *batchSize {
@@ -246,7 +258,7 @@ func main() {
 
 			took := time.Since(t0)
 			perSecond := float64(len(namedBatch)) / took.Seconds()
-			log.Printf("storing threads [5v] ... %d, per second: %.2f", stats, postCount, perSecond)
+			log.Printf("storing threads [%+v] ... %d, per second: %.2f", stats, postCount, perSecond)
 			t0 = time.Now()
 
 			namedBatch = map[int32]*data.Document{}
@@ -260,20 +272,6 @@ func main() {
 	}
 
 	store.BulkUpsert(toSlice(namedBatch))
-}
-
-func toDoc(base string, v Post) *data.Document {
-	popularity := v.ViewCount
-
-	doc := &data.Document{
-		Title:      v.Title,
-		Body:       byte(v.String(base)),
-		Tags:       v.Tags,
-		Popularity: popularity,
-		ObjectID:   fmt.Sprintf("%d", v.PostID),
-	}
-
-	return doc
 }
 
 func toSlice(in map[int32]*data.Document) []*data.Document {

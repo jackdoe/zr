@@ -14,6 +14,14 @@ func CompressX(a ...[]byte) []byte {
 	return snappy.Encode(nil, combined)
 }
 
+func JoinB(a ...[]byte) []byte {
+	combined := []byte{}
+	for _, b := range a {
+		combined = append(combined, b...)
+	}
+	return combined
+}
+
 func Decompress(b []byte) []byte {
 	out, err := snappy.Decode(nil, b)
 	if err != nil {
