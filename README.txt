@@ -24,6 +24,7 @@ or
   * use sqlite3 to store the inverted index and remove the bloom search
     (bloom search was very interesting, but it needs at least two
     terms to make sense, which is super annoying)
+  * add sharding
 
 # What is it?
 
@@ -258,7 +259,6 @@ Especially visualization wise, I think it can be done much better.
 
 # TODO
 
-* sharding if needed
 * remove stop words
 * upload the built index somewhere so people dont have to spend day
   building it
@@ -291,6 +291,7 @@ At some point I got stuck into adding sharding to maximize resource
 usage (and I did), but then I just thought: what about if I just chill
 and let it run over night, so it is done in 8 hours instead of 2-3?
 its not the end of the world.
+(NOTE: later I actually added sharding haha)
 
 Also DAMN sqlite3 is some good piece of software!
 

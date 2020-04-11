@@ -139,7 +139,7 @@ func main() {
 	root := flag.String("root", util.GetDefaultRoot(), "root")
 	kind := flag.String("k", "so", "kind of object (prependet to the id)")
 	limit := flag.Int("debug-limit", 0, "just take N documents from Posts.xml")
-	batchSize := flag.Int("batch-size", 100, "insert N per chunk")
+	batchSize := flag.Int("batch", 100, "insert N per chunk")
 	onlyAccepted := flag.Bool("only-accepted", false, "only questions with accepted answers")
 
 	onlyWithAnswers := flag.Bool("only-with-answers", false, "only questions with at least 1 answer")
@@ -245,7 +245,8 @@ func main() {
 			thread, ok := namedBatch[p.ParentID]
 			if !ok {
 				d := data.Document{}
-				if err := store.DB.Where("object_id = ?", p.ParentID).First(&d).Error; err != nil {
+				shard := store.ShardFor(fmt.Sprintf("%d", p.ParentID))
+				if err := shard.DB.Where("object_id = ?", p.ParentID).First(&d).Error; err != nil {
 					stats.NoParent++
 					stats.Skip++
 

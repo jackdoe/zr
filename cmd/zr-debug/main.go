@@ -33,51 +33,53 @@ func main() {
 		log.Fatal("kind")
 	}
 
-	store := data.NewStore(*root, *kind)
-	defer store.Close()
+	sharded := data.NewStore(*root, *kind)
+	defer sharded.Close()
 
-	var doc data.Document
-	if *rid != 0 {
-		if err := store.DB.Model(data.Document{}).Where("row_id=?", *rid).First(&doc).Error; err != nil {
-			panic(err)
-		}
-	} else {
-		if err := store.DB.Model(data.Document{}).Where("object_id=?", *id).First(&doc).Error; err != nil {
-			panic(err)
-		}
-	}
-
-	doc.Body = util.Decompress(doc.Body)
-
-	fmt.Printf(" TITLE:      %s\n", doc.Title)
-	fmt.Printf(" TAGS:       %s\n", doc.Tags)
-	fmt.Printf(" DOC ID:     %d\n", doc.RowID)
-	fmt.Printf(" OBJECT ID:  %s\n", doc.ObjectID)
-	fmt.Printf(" INDEXED:    %d\n", doc.Indexed)
-	fmt.Printf("%s\n\n", strings.Repeat("*", 80))
-	os.Stdout.Write(doc.Body)
-
-	tokens := data.DefaultAnalyzer.AnalyzeIndex(string(doc.Body))
-
-	sort.Strings(tokens)
-	for idx, t := range tokens {
-		postings := store.Dir.Postings("body/" + t)
-		found := false
-		for _, did := range postings {
-			if did == doc.RowID {
-				found = true
+	for _, store := range sharded.Shards {
+		var doc data.Document
+		if *rid != 0 {
+			if err := store.DB.Model(data.Document{}).Where("row_id=?", *rid).First(&doc).Error; err != nil {
+				continue
+			}
+		} else {
+			if err := store.DB.Model(data.Document{}).Where("object_id=?", *id).First(&doc).Error; err != nil {
+				continue
 			}
 		}
-		fmt.Printf("%3d -> %s postings: %v [%v]\n", idx, t, len(postings), found)
-		if *dumpPostings {
-			for i, did := range postings {
+
+		doc.Body = util.Decompress(doc.Body)
+
+		fmt.Printf(" TITLE:      %s\n", doc.Title)
+		fmt.Printf(" TAGS:       %s\n", doc.Tags)
+		fmt.Printf(" DOC ID:     %d\n", doc.RowID)
+		fmt.Printf(" OBJECT ID:  %s\n", doc.ObjectID)
+		fmt.Printf(" INDEXED:    %d\n", doc.Indexed)
+		fmt.Printf("%s\n\n", strings.Repeat("*", 80))
+		os.Stdout.Write(doc.Body)
+
+		tokens := data.DefaultAnalyzer.AnalyzeIndex(string(doc.Body))
+
+		sort.Strings(tokens)
+		for idx, t := range tokens {
+			postings := store.Dir.Postings("body/" + t)
+			found := false
+			for _, did := range postings {
 				if did == doc.RowID {
-					fmt.Printf("\t%10d: >>%d<<\n", i, did)
-				} else {
-					fmt.Printf("\t%10d: %d\n", i, did)
+					found = true
 				}
 			}
+			fmt.Printf("%3d -> %s postings: %v [%v]\n", idx, t, len(postings), found)
+			if *dumpPostings {
+				for i, did := range postings {
+					if did == doc.RowID {
+						fmt.Printf("\t%10d: >>%d<<\n", i, did)
+					} else {
+						fmt.Printf("\t%10d: %d\n", i, did)
+					}
+				}
 
+			}
 		}
 	}
 }

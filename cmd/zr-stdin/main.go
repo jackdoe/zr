@@ -61,9 +61,5 @@ func main() {
 		Indexed:    0,
 	}
 
-	tx := store.DB.Begin()
-	store.Upsert(tx, doc)
-	if err := tx.Commit().Error; err != nil {
-		panic(err)
-	}
+	store.BulkUpsert([]*data.Document{doc})
 }
