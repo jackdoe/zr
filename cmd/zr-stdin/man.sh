@@ -9,22 +9,26 @@
 # transform:
 #   /usr/share/man/man1/autoreconf.1.gz:.BR autoconf (1),
 # to
-#   autoconf.1
+#   autoreconf.1 autoconf.1
+
+# install ripgrep and go install github.com/jackdoe/updown/cmd/pagerank
 
 rg -z '.BR \w+ \(' /usr/share/man/man[1-9]/* \
     | sed -e 's/ //g' \
-    | cut -f 1 -d ')' \
-    | awk -F '.BR' '{print $2}' \
+    | sed -e 's/.BR//g' \
     | tr '(' '.' \
-    | sort -n \
-    | uniq -c > /tmp/zr-man-index
+    | cut -f 1 -d ')' \
+    | sed -e 's/.*\///g' \
+    | sed -e 's/\.gz:/ /' \
+    | pagerank -int -tolerance 0.6 -tolerance 0.001 > /tmp/zr-man-pagerank
+
 	  
 export MANWIDTH=80
 
 for i in `find /usr/share/man/man[1-9] -type f -name '*.gz' | shuf`; do
     base=$(basename $i | sed -e 's/\.gz//g')
     title=$(man -P cat $base | tr " " "\n" | head -1)
-    score=$(cat /tmp/zr-man-index | grep -w $base | awk '{print $1 }')
+    score=$(cat /tmp/zr-man-pagerank | grep -w $base | cut -f 1 -d ' ')
     popularity=${score:-0}
     echo $base score: $popularity
     ( man -P cat $base | zr-stdin -title "$title" -k man -id $base -popularity $popularity) &
