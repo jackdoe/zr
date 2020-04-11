@@ -21,11 +21,14 @@ or
   * pager support, tries to use less, more using:
     https://github.com/jackdoe/go-pager
   * multi index search
+  * use sqlite3 to store the inverted index and remove the bloom search
+    (bloom search was very interesting, but it needs at least two
+    terms to make sense, which is super annoying)
 
 # What is it?
 
 it is a local index of 2020 StackOverflow's Posts.xml (downloaded from
-archive.org) with about 43 million questions and answers.
+archive.org) with about 47 million questions and answers.
 
 You can get the whole stackexchange from:
 
@@ -49,55 +52,42 @@ So here it is.
 
 # How does it work?
 
-I am experimenting with bloom-like searching, so the way I am building
-the index is quite funky.
+I am experimenting with somewhat weird search index.
 
 First the normalizer only alphanumeric (ascii) characters, and then
-the tokenizer splits on whitespace and then for each token it converts
-it to `gometro.Hash(token)&0x0..FFFF_token[0]`, for example "merge" will be
-converted to (123123123 & 0x0..ffff)_m, so only 2 bytes of the hash
-are used, and the first character of the token.
+the tokenizer splits on whitespace and then for each token it adds a
+sufix with int(max(16, sqrt(line_number)). So if we have the following
+document:
 
-for better explanation refer to the code in data.go:
+  hello world
+  goodbye world
+  new world
 
-```
-	first := s[0]
+it will create the tokens:
 
-	h := metro.Hash64Str(s, 0)
+  hello_0 world_0 goodbye_1 world_1 new_1 world_1
 
-	// 65k per starting character
-	// so overall 65k * 36, or about 2.5 mil files
+Then at query time it will build a bunch of dismax queries with custom
+weights based on _0, _1 .. etc so _0 has weight 16, _1 has 15.. etc,
+this way the top of the file has more weight than the bottom, but also
+all queries are somewhat phrase queries, the lower in the file it
+gets, the more lose the phrase is.
 
-	return fmt.Sprintf("%x_%c", h&0x000000000000FFFF, first)
-```
+I use https://github.com/rekki/go-query package's query and
+https://github.com/jackdoe/go-query-sql to store the indexes in
+sqlite.
 
-So this is about 2.5 million files, each containing 4 bytes per
-document matching the specific term.
+Its a simple table: (id varchar(255), list largeblob) and the blob is
+a sorted list of 4 byte integers.
 
-In the same time a weights table is created, that contains 12 bytes
-per post, it holds the chosen answer id, the parent viewcount (because
-only questions have viewcount) and the score (upvotes/downvotes)
+If you have a term that is matching most of SO's questions (like 'a')
+it will load few million * 4 bytes in memory, well the while database
+is about 45 million, so worse case you get ~200mb of data, so not the
+end of the world.
 
-This weights table is used during query time to sort the matching
-posts.
-
-I use https://github.com/rekki/go-query package's query and file index.
-The way it works is at query time it just opens the term file and
-loads []int32 array, then it does the query operation on it.
-Lets say we have a query "git merge" this will open 2 files
-
-root/inv/g/hash(git)%0xffff_g
-root/inv/m/hash(merge)%0xffff_e
-
-It will read the contents and create two []int32 sorted lists (they
-are sorted by insertion order). You know how you can use the database
-as a filesystem? You can also use the filesystem as a database :D.
-
-Then it can efficiently merge them, so if you have a term that is
-matching most of SO's questions (like 'a') it will load few million *
-4 bytes in memory, well the while database is about 45 million, so
-worse case you get ~200mb of data, so not the end of the world.
-
+BTW because of the line number suffix, the distribution of the words
+is much better, as in you dont have a word that exists in every single
+document.
 
 After that it uses binary search and other tricks to iterate fast and
 do the intersection (you can check out github.com/rekki/go-query for
@@ -105,21 +95,8 @@ more details). For each match the weights table is used to extract the
 "popularity" and then a score is created which is totally biased
 towards viewcount.
 
-For the topN hits we query the sqlite database, find the question
-threads, sort the answers by score and pretty print them (see the
-example)
-
-Anyway, I am quite excited about this bloomy search, because you get
-some very interesting properties, first the probability of getting a
-mismatch decreases with the amount of tokens in the query, and so far
-I have been getting only good results. I am still learning how it
-behaves, but it is the first time I am exploring random in a search
-problem.
-
-There is one more trick being used, in order to prefer things on the
-top of the files (threads) more than the bottom, I split the blob in
-32 chunks, with chunk = max(32,sqrt(line number)), then on query time
-I create a dismax query with 32 AND queries.. as I said, quite funky!
+For the topN hits we query the sqlite database, find the documents,
+sort the answers by score and pretty print them (see the example)
 
 # Install
 
@@ -166,8 +143,8 @@ less)
 
 also: sudo mount -o remount,noatime,nodiratime,lazytime /
 
-The total index size is about 100G (sqlite plus inverted index).
-and at least 2.5k inodes (depending on your blocksize)
+The total index size is about 30G (sqlite plus inverted index).
+(the documents are compressed with snappy)
 
 # Search (example)
 
@@ -308,5 +285,7 @@ At some point I got stuck into adding sharding to maximize resource
 usage (and I did), but then I just thought: what about if I just chill
 and let it run over night, so it is done in 8 hours instead of 2-3?
 its not the end of the world.
+
+Also DAMN sqlite3 is some good piece of software!
 
 -b

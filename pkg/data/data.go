@@ -5,7 +5,6 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/dgryski/go-metro"
 	"github.com/rekki/go-query/util/analyzer"
 	"github.com/rekki/go-query/util/norm"
 	"github.com/rekki/go-query/util/tokenize"
@@ -37,6 +36,8 @@ func ascii(s string) string {
 	return sb.String()
 }
 
+var MAX_TOKEN_SIZE = 10
+
 func prefixLine(in []string) []string {
 	out := make([]string, 0, len(in))
 
@@ -64,7 +65,9 @@ func prefixLine(in []string) []string {
 				}
 			} else {
 				hasChar = true
-				sb.WriteRune(c)
+				if sb.Len() < MAX_TOKEN_SIZE {
+					sb.WriteRune(c)
+				}
 			}
 			if c == '\n' || c == '\r' {
 				lineNo++
@@ -87,30 +90,8 @@ func prefixLine(in []string) []string {
 
 var DefaultNormalizer = []norm.Normalizer{norm.NewCustom(ascii)}
 
-var trim = func(s string) string {
-	first := s[0]
-	h := metro.Hash64Str(s, 0)
-
-	// 65k per starting character
-	// so overall 65k * 36, or about 2.5 mil files
-
-	var sb strings.Builder
-	sb.WriteString(strconv.FormatUint(h&0x000000000000FFFF, 10))
-	sb.WriteRune('_')
-	sb.WriteRune(rune(first))
-	return sb.String()
-}
-
-var trimmer = tokenize.NewCustom(func(in []string) []string {
-	for i := range in {
-		in[i] = trim(in[i])
-	}
-	return in
-})
-
 var DefaultSearchTokenizer = []tokenize.Tokenizer{
 	tokenize.NewWhitespace(),
-	trimmer,
 }
 
 const MAX_CHUNKS = 16
@@ -118,7 +99,6 @@ const MAX_CHUNKS = 16
 // haha this is extreme hack
 var DefaultIndexTokenizer = []tokenize.Tokenizer{
 	tokenize.NewCustom(prefixLine),
-	trimmer,
 	tokenize.NewUnique(),
 }
 

@@ -1,14 +1,11 @@
 package main
 
 import (
-	"encoding/binary"
 	"flag"
 	"fmt"
-	"io/ioutil"
 	"log"
 	_ "net/http/pprof"
 	"os"
-	"path"
 	"sort"
 	"strings"
 
@@ -62,28 +59,16 @@ func main() {
 
 	tokens := data.DefaultAnalyzer.AnalyzeIndex(string(doc.Body))
 
-	dir := path.Join(*root, *kind, "inv", "body")
-
 	sort.Strings(tokens)
 	for idx, t := range tokens {
-		p := path.Join(dir, store.Dir.DirHash(t), t)
-		data, err := ioutil.ReadFile(p)
-		if err != nil {
-			panic(err)
-		}
-		postings := make([]int32, len(data)/4)
-		for i := 0; i < len(postings); i++ {
-			from := i * 4
-			postings[i] = int32(binary.LittleEndian.Uint32(data[from : from+4]))
-		}
-
+		postings := store.Dir.Postings("body/" + t)
 		found := false
 		for _, did := range postings {
 			if did == doc.RowID {
 				found = true
 			}
 		}
-		fmt.Printf("%3d -> %s file: %s, postings: %v [%v]\n", idx, t, p, len(postings), found)
+		fmt.Printf("%3d -> %s postings: %v [%v]\n", idx, t, len(postings), found)
 		if *dumpPostings {
 			for i, did := range postings {
 				if did == doc.RowID {

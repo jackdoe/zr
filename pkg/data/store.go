@@ -1,6 +1,7 @@
 package data
 
 import (
+	"database/sql"
 	"encoding/binary"
 	"fmt"
 	"log"
@@ -9,6 +10,7 @@ import (
 	"strings"
 	"time"
 
+	inv "github.com/jackdoe/go-query-sql"
 	"github.com/jackdoe/zr/pkg/util"
 	"github.com/jinzhu/gorm"
 	_ "github.com/jinzhu/gorm/dialects/sqlite"
@@ -19,34 +21,8 @@ import (
 
 type Store struct {
 	DB     *gorm.DB
-	Dir    *index.DirIndex
+	Dir    *inv.LiteIndex
 	Weight *os.File
-	root   string
-	kind   string
-}
-
-type FDCache struct {
-	created map[string]bool
-}
-
-func (x *FDCache) Close() {
-}
-
-func (x *FDCache) Use(fn string, createFile func(fn string) (*os.File, error), cb func(*os.File) error) error {
-	dir := path.Dir(fn)
-	if !x.created[dir] {
-		_ = os.MkdirAll(dir, 0700)
-		x.created[dir] = true
-	}
-
-	f, err := createFile(fn)
-
-	if err != nil {
-		return err
-	}
-
-	defer f.Close()
-	return cb(f)
 }
 
 func NewStore(root string, kind string) *Store {
@@ -62,25 +38,24 @@ func NewStore(root string, kind string) *Store {
 
 	db.AutoMigrate(&Document{})
 
-	fdc := &FDCache{created: map[string]bool{}}
-
 	weight, err := os.OpenFile(path.Join(root, kind, "weight"), os.O_CREATE|os.O_RDWR, 0600)
 	if err != nil {
-		panic(err)
+		log.Fatal(err)
 	}
 
-	invRoot := path.Join(root, kind, "inv")
-	di := index.NewDirIndex(invRoot, fdc, map[string]*analyzer.Analyzer{
+	invDB, err := sql.Open("sqlite3", path.Join(root, kind, "inv.db"))
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	idx, err := inv.NewLiteIndex(invDB, inv.SQLITE3, "inv", map[string]*analyzer.Analyzer{
 		"body": DefaultAnalyzer,
 	})
-
-	di.DirHash = func(s string) string {
-		return string([]byte{s[0], s[len(s)-1]})
+	if err != nil {
+		log.Fatal(err)
 	}
 
-	di.Lazy = false
-
-	return &Store{DB: db, Dir: di, Weight: weight, kind: kind, root: root}
+	return &Store{DB: db, Dir: idx, Weight: weight}
 }
 
 func andOrFirst(q []iq.Query) iq.Query {
@@ -127,7 +102,7 @@ func (s *Store) MakeQuery(field string, query string) iq.Query {
 	for i := 0; i < MAX_CHUNKS; i++ {
 		and := []iq.Query{}
 		for _, w := range ws {
-			term := trim(fmt.Sprintf("%s_%d", w, i))
+			term := fmt.Sprintf("%s_%d", w, i)
 			q := s.Dir.NewTermQuery(field, term)
 			and = append(and, q)
 		}
@@ -139,7 +114,7 @@ func (s *Store) MakeQuery(field string, query string) iq.Query {
 	not := []iq.Query{}
 	for i := 0; i < MAX_CHUNKS; i++ {
 		for _, w := range ws {
-			term := trim(fmt.Sprintf("%s_%d", w, i))
+			term := fmt.Sprintf("%s_%d", w, i)
 			q := s.Dir.NewTermQuery(field, term)
 			not = append(not, q)
 		}
@@ -178,10 +153,10 @@ func (s *Store) BulkUpsert(batch []*Document) {
 }
 
 func (s *Store) Reindex(batchSize int) {
-	invp := path.Join(s.root, s.kind, "inv")
-	log.Printf("removing %v", invp)
-	_ = os.RemoveAll(invp)
-	_ = os.MkdirAll(invp, 0700)
+	log.Printf("truncating inverted")
+	if err := s.Dir.Truncate(); err != nil {
+		panic(err)
+	}
 
 	log.Printf("setting all documents as not indexed")
 	if err := s.DB.Table("documents").Where("indexed = 1").Updates(map[string]interface{}{"indexed": 0}).Error; err != nil {
