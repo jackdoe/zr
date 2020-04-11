@@ -98,6 +98,12 @@ towards viewcount.
 For the topN hits we query the sqlite database, find the documents,
 sort the answers by score and pretty print them (see the example)
 
+# Size
+
+The documents are compressed with snappy, for 80GB stackoverflow
+posts, the snappy compressed sqlite is about 35GB, and the inverted
+index is about 40GB.
+
 # Install
 
 $ go get github.com/jackdoe/zr/...
@@ -137,7 +143,7 @@ This is quite slower, it indexes about 3k documents per second, so it
 takes like 5 hours to finish (it is easy to be sharded and etc, but I
 only have 2 cores anyway, so wont be much faster me)
 
-You can speed it up by increasing the -batch-size factor (the bigger it
+You can speed it up by increasing the -batch factor (the bigger it
 is the more ram it will use, with 1k it will use few hundred MB or
 less)
 
