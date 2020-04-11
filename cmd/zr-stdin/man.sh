@@ -20,7 +20,7 @@ rg -z '.BR \w+ \(' /usr/share/man/man[1-9]/* \
     | cut -f 1 -d ')' \
     | sed -e 's/.*\///g' \
     | sed -e 's/\.gz:/ /' \
-    | pagerank -int -tolerance 0.6 -tolerance 0.001 > /tmp/zr-man-pagerank
+    | pagerank -int -prob-follow 0.6 -tolerance 0.001 > /tmp/zr-man-pagerank
 
 	  
 export MANWIDTH=80
