@@ -170,6 +170,7 @@ func (s *Shard) Reindex(batchSize int) {
 		panic(err)
 	}
 
+	log.Printf("[shard %d] starting reindex for %d documents", s.ID, cnt)
 	idx := 0
 	processed := 0
 	t0 := time.Now()
