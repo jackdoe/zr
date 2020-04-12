@@ -94,7 +94,7 @@ var DefaultSearchTokenizer = []tokenize.Tokenizer{
 	tokenize.NewWhitespace(),
 }
 
-const MAX_CHUNKS = 16
+const MAX_CHUNKS = 32
 
 // haha this is extreme hack
 var DefaultIndexTokenizer = []tokenize.Tokenizer{
