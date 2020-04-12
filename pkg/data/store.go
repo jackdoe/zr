@@ -1,6 +1,7 @@
 package data
 
 import (
+	"runtime"
 	"sync"
 
 	"github.com/dgryski/go-metro"
@@ -27,16 +28,24 @@ func NewStore(root string, kind string) *Store {
 func (s *Store) Parallel(cb func(int, *Shard)) {
 	wg := sync.WaitGroup{}
 
+	max := runtime.GOMAXPROCS(0)
+	wait := make(chan bool, max)
+	for i := 0; i < max; i++ {
+		wait <- true
+	}
+
 	for shardID, shard := range s.Shards {
+		<-wait
 		wg.Add(1)
 		go func(shardID int, shard *Shard) {
 			cb(shardID, shard)
-
+			wait <- true
 			wg.Done()
 		}(shardID, shard)
 	}
 
 	wg.Wait()
+	close(wait)
 }
 
 func (s *Store) Reindex(batchSize int) {
