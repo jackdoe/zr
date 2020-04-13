@@ -38,26 +38,26 @@ func ascii(s string) string {
 
 var MAX_TOKEN_SIZE = 10
 
-func prefixLine(in []string) []string {
-	out := make([]string, 0, len(in))
+func prefixLine(in []tokenize.Token) []tokenize.Token {
+	out := make([]tokenize.Token, 0, len(in))
 
 	var sb strings.Builder
 
 	lineNo := 0
 	chunkID := uint64(0)
 	for _, current := range in {
-		if len(current) == 0 {
+		if len(current.Text) == 0 {
 			continue
 		}
 		hasChar := false
-		for _, c := range current {
+		for _, c := range current.Text {
 			if c == ' ' || c == '\t' || c == '\n' || c == '\r' {
 				if sb.Len() > 0 && hasChar {
 					if sb.Len() > 0 {
 						sb.WriteRune('_')
 						sb.WriteString(strconv.FormatUint(chunkID, 10))
 
-						out = append(out, sb.String())
+						out = append(out, current.Clone(sb.String()))
 					}
 					sb.Reset()
 
@@ -81,7 +81,7 @@ func prefixLine(in []string) []string {
 			sb.WriteRune('_')
 			sb.WriteString(strconv.FormatUint(chunkID, 10))
 
-			out = append(out, sb.String())
+			out = append(out, current.Clone(sb.String()))
 			sb.Reset()
 		}
 	}

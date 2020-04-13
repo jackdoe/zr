@@ -2,14 +2,16 @@ package data
 
 import (
 	"testing"
+
+	"github.com/rekki/go-query/util/tokenize"
 )
 
-func eq(a []string, b []string) bool {
+func eq(a []string, b []tokenize.Token) bool {
 	if len(a) != len(b) {
 		return false
 	}
 	for i, x := range a {
-		if x != b[i] {
+		if x != b[i].Text {
 			return false
 		}
 	}
@@ -50,7 +52,7 @@ x`,
 		},
 	} {
 
-		r := DefaultIndexTokenizer[0].Apply([]string{ascii(c.in)})
+		r := DefaultIndexTokenizer[0].Apply([]tokenize.Token{tokenize.Token{Text: ascii(c.in), Position: 0, LineNo: 0}})
 		if !eq(c.out, r) {
 			t.Fatalf("got %v, expected: %v", r, c.out)
 		}
