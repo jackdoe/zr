@@ -162,24 +162,40 @@ the query for "git merge -ubuntu -windows" is translated to
 $ ~/go/bin/zr git merge
 # use zr -h to see the help
 
-  █████████████████████████████████████ so █████████████████████████████████████
+  ██████████████████████████████████████ so ██████████████████████████████████████
+  
   ┌------------------------------
-  │ Q: How do I force "git pull" to overwrite local files?
-  │    tags:     <git><version-control><overwrite><git-pull><git-fetch>
-  │    url:      stackoverflow.com/q/1125968
-  │    score:    6905/4499402
-  │    created:  2009-07-14T14:58:15.550
-  │    accepted: stackoverflow.com/a/8888015
+  │ Q: Is there a "theirs" version of "git merge -s ours"?
+  │    tags:     git,git-merge
+  │    url:      stackoverflow.com/q/173919
+  │    score:    850/445471
+  │    created:  2008-10-06T11:16:43.217
+  │    accepted: stackoverflow.com/a/3364506
   │ ---
-  │
-  │ How do I force an overwrite of local files on a git pull ?
-  │
-  │ *The scenario is the following:*
-  │
-  │ * A team member is modifying the templates for a website we are working on
-  │ * They are adding some images to the images directory (but forgets to add them
-  │ under source control)
-  ....
+  │ 
+  │ When merging topic branch "B" into "A" using git merge , I get some conflicts.
+  │ I know all the conflicts can be solved using the version in "B".
+  │ 
+  │ I am aware of git merge -s ours. But what I want is something like git merge
+  │ -s theirs.
+  │ 
+  │ Why doesn't it exist? How can I achieve the same result after the conflicting
+  │ merge with existing git commands? ( git checkout every unmerged file from B)
+  │ 
+  │ UPDATE: The "solution" of just discarding anything from branch A (the merge
+  │ commit point to B version of the tree) is not what I am looking for.
+  │ 
+  └--
+  
+  ┌-----
+    A: stackoverflow.com/a/173954 score: 21, created: 2008-10-06T11:34:59.203
+    
+    I solved my problem using
+    
+    git checkout -m old
+    git checkout -b new B
+    git merge -s ours old
+    ...
 
   █████████████████████████████████████ man █████████████████████████████████████
 
@@ -204,51 +220,86 @@ $ ~/go/bin/zr git merge
          base for a pair of commits.
   ...
 
+  ██████████████████████████████████████ su ██████████████████████████████████████
+  
+  ┌------------------------------
+  │ Q: Is there a way to redo a merge in git?
+  │    tags:     git
+  │    url:      superuser.com/q/691494
+  │    score:    17/17366
+  │    created:  2013-12-21T07:01:22.967
+  │ ---
+  │ 
+  │ So I made a pretty big mistake. I made a commit, pulled, merged (but messed up
+  │ the code while doing so) and then pushed. I'd like to redo that merge and get
+  │ the code right. Is there any way to do this?
+  │ 
+  │ I use bitbucket.
+  │ 
+  └--
+  
+  ┌-----
+    A: superuser.com/a/691495 score: 1, created: 2013-12-21T07:03:44.313
+    
+    git merge --abort and then you can merge again
+    
+  └--
+  ...
+
 searching in stackoverflow, superuser and man pages by default
 you can specify which index to use with `zr -k so,su,man`, by default it shows
 top result from each index, but you can use -top to specify how many per index.
 
 # index man pages using `zr-stdin`
 
-to index your man pages run:
+pagerank the manpages by building a graph of the references.
 
+example script:
+
+  # install ripgrep and github.com/jackdoe/updown/cmd/pagerank
+  rg -z '.BR \w+ \(' /usr/share/man/man[1-9]/* \
+      | sed -e 's/ //g' \
+      | sed -e 's/.BR//g' \
+      | tr '(' '.' \
+      | cut -f 1 -d ')' \
+      | sed -e 's/.*\///g' \
+      | sed -e 's/\.gz:/ /' \
+      | pagerank -int -prob-follow 0.6 -tolerance 0.001 > /tmp/zr-man-pagerank
+  
+  	  
   for i in `find /usr/share/man/man[1-9] -type f -name '*.gz' | shuf`; do
-      base=$(basename $i | sed -e 's/\.gz$//g')
+      base=$(basename $i | sed -e 's/\.gz//g')
       title=$(man -P cat $base | tr " " "\n" | head -1)
-      echo $i
-
-      man -P cat $base | zr-stdin -title "$title" -kind man -id $base
+      score=$(cat /tmp/zr-man-pagerank | grep -w $base | cut -f 1 -d ' ')
+      popularity=${score:-0}
+      echo $base score: $popularity
+      man -P cat $base | zr-stdin -title "$title" -k man -id $base -popularity $popularity
   done
+
 
 then run `zr-reindex -k man` to build then index
 
 # index go doc
 
 I run this script that generates godoc for all installed packages, and
-also sets the popularity to be the number of github.com stars (for
-github packages):
+also sets the popularity to be the pagerank of how they are imported
+from each other
 
-  if [ "x$GITHUB_OAUTH_APP" = "x" ]; then
-      echo 'make oauth app and set GITHUB_OAUTH_APP to client_id:client_secret this way you get 5000 api calls per hour'
-      exit 1
-  fi
+  # need to go install github.com/jackdoe/updown/cmd/pagerank
+  # need to go install github.com/jackdoe/updown/cmd/printimports
   
-  for i in `go list ... | grep -v internal | grep -v ^cmd/`; do
-      score=0
-      echo $i | grep 'github.com' >/dev/null 2>&1
-      if [ $? = 0 ]; then
-  	user=$(echo $i | cut -f 2 -d '/')
-  	repo=$(echo $i | cut -f 3 -d '/')
+  find $GOPATH/src -type f -name '*.go' -exec printimports -file {} \; \
+      | pagerank -int -tolerance 0.01 -prob-follow 0.65 \
+      | sort -n > /tmp/zr-go-pagerank 
   
-  	if [ "$i" = "github.com/$user/$repo" ]; then
-  	    score=$(curl -u $GITHUB_OAUTH_APP -s https://api.github.com/repos/$user/$repo | jq -r '.stargazers_count // 0')
-  	    sleep 1
-  	fi
-      fi
-      echo $i - score "$score"
-
-      go doc --all $i | zr-stdin -title "$i" -k godoc -id $i -popularity "$score"
+  for x in `cat /tmp/zr-go-pagerank | sed -e 's/ /:/g'`; do
+      score=$(echo $x | cut -f 1 -d ':')
+      package=$(echo $x | cut -f 2 -d ':')
+      echo $package - score "$score"
+  
+      go doc --all $package | zr-stdin -title "$package" -k godoc -id $package -popularity "$score"
   done
+
 
 # Contribute
 
