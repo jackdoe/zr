@@ -65,7 +65,6 @@ func main() {
 		if v == "" {
 			continue
 		}
-		fmt.Fprintf(less, "\n%s\n\n", util.Center(v, '█'))
 
 		store := data.NewStore(*root, v)
 		total := []scored{}
@@ -115,6 +114,9 @@ func main() {
 			total = total[:limit]
 		}
 
+		if len(total) > 0 {
+			fmt.Fprintf(less, "\n%s\n\n", util.Center(v, '█'))
+		}
 		for _, h := range total {
 			if *debug {
 				fmt.Fprintf(less, "HIT: %+v\n", h)
