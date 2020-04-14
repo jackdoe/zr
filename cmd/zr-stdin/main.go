@@ -25,9 +25,23 @@ func main() {
 	tags := flag.String("tags", "", "tags")
 	popularity := flag.Int("popularity", 1, "popularity")
 	ptitle := flag.String("title", "", "title")
+	fn := flag.String("file", "", "filename or empty for stdin")
 	pid := flag.String("id", "", "the id of the object, empty means its the sha1 of the content")
-
 	flag.Parse()
+
+	var in []byte
+	var err error
+	if *fn == "" {
+		in, err = ioutil.ReadAll(os.Stdin)
+		if err != nil {
+			panic(err)
+		}
+	} else {
+		in, err = ioutil.ReadFile(*fn)
+		if err != nil {
+			panic(err)
+		}
+	}
 
 	if *root == "" {
 		log.Fatal("root")
@@ -35,11 +49,6 @@ func main() {
 
 	if *kind == "" {
 		log.Fatal("kind")
-	}
-
-	in, err := ioutil.ReadAll(os.Stdin)
-	if err != nil {
-		panic(err)
 	}
 
 	store := data.NewStore(*root, *kind)
