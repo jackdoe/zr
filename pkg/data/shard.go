@@ -15,8 +15,9 @@ import (
 	"github.com/jinzhu/gorm"
 	_ "github.com/jinzhu/gorm/dialects/sqlite"
 	iq "github.com/rekki/go-query"
-	"github.com/rekki/go-query/util/analyzer"
-	"github.com/rekki/go-query/util/index"
+	analyzer "github.com/rekki/go-query-analyze"
+
+	index "github.com/rekki/go-query-index"
 )
 
 type Shard struct {

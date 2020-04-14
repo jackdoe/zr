@@ -5,9 +5,9 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/rekki/go-query/util/analyzer"
-	"github.com/rekki/go-query/util/norm"
-	"github.com/rekki/go-query/util/tokenize"
+	analyzer "github.com/rekki/go-query-analyze"
+	norm "github.com/rekki/go-query-analyze/normalize"
+	"github.com/rekki/go-query-analyze/tokenize"
 )
 
 func ascii(s string) string {

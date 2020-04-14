@@ -3,7 +3,7 @@ package data
 import (
 	"testing"
 
-	"github.com/rekki/go-query/util/tokenize"
+	"github.com/rekki/go-query-analyze/tokenize"
 )
 
 func eq(a []string, b []tokenize.Token) bool {
