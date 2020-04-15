@@ -10,7 +10,6 @@ builds:
     id: zr-stackexchange
     goos:
       - linux
-      - darwin
     goarch:
       - amd64
   - main: ./cmd/zr-stdin/main.go
@@ -18,7 +17,6 @@ builds:
     id: zr-stdin
     goos:
       - linux
-      - darwin
     goarch:
       - amd64
   - main: ./cmd/zr/main.go
@@ -26,7 +24,6 @@ builds:
     id: zr
     goos:
       - linux
-      - darwin
     goarch:
       - amd64
   - main: ./cmd/zr-reindex/main.go
@@ -34,7 +31,6 @@ builds:
     id: zr-reindex
     goos:
       - linux
-      - darwin
     goarch:
       - amd64
 
