@@ -1,0 +1,47 @@
+env:
+  - GO111MODULE=on
+before:
+  hooks:
+    - go mod download
+
+builds:
+  - main: ./cmd/zr-stackexchange/main.go
+    binary: zr-stackexchange
+    id: zr-stackexchange
+    goarch:
+      - amd64
+    goos:
+      - windows
+  - main: ./cmd/zr-stdin/main.go
+    binary: zr-stdin
+    id: zr-stdin
+    env:
+      - CGO_ENABLED=1
+    goos:
+      - windows
+    goarch:
+      - amd64
+  - main: ./cmd/zr/main.go
+    binary: zr
+    id: zr
+    env:
+      - CGO_ENABLED=1
+    goarch:
+      - amd64
+    goos:
+      - windows
+  - main: ./cmd/zr-reindex/main.go
+    binary: zr-reindex
+    id: zr-reindex
+    env:
+      - CGO_ENABLED=1
+    goarch:
+      - amd64
+    goos:
+      - windows
+
+archives:
+  - name_template: '{{ .ProjectName }}_{{.Tag}}_{{ .Os }}_{{ .Arch }}{{ if .Arm }}v{{ .Arm }}{{ end }}'
+    format_overrides:
+    - goos: windows
+      format: zip
