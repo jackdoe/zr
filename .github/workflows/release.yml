@@ -1,6 +1,12 @@
+env:
+  - GO111MODULE=on
+before:
+  hooks:
+    - go mod download
 on:
   push:
-
+    tags:
+    - 'v*'
 jobs:
   goreleaser:
     runs-on: ubuntu-latest
