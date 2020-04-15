@@ -105,9 +105,11 @@ func (s *Shard) MakeQuery(field string, query string) iq.Query {
 	for i := 0; i < MAX_CHUNKS; i++ {
 		and := []iq.Query{}
 		for _, w := range ws {
-			term := fmt.Sprintf("%s_%d", w, i)
-			q := s.Dir.NewTermQuery(field, term)
-			and = append(and, q)
+			if len(w) > 0 {
+				term := fmt.Sprintf("%s_%d", w, i)
+				q := s.Dir.NewTermQuery(field, term)
+				and = append(and, q)
+			}
 		}
 		or = append(or, iq.Constant(float32(1+MAX_CHUNKS-i), andOrFirst(and)))
 	}
@@ -117,9 +119,11 @@ func (s *Shard) MakeQuery(field string, query string) iq.Query {
 	not := []iq.Query{}
 	for i := 0; i < MAX_CHUNKS; i++ {
 		for _, w := range ws {
-			term := fmt.Sprintf("%s_%d", w, i)
-			q := s.Dir.NewTermQuery(field, term)
-			not = append(not, q)
+			if len(w) > 0 {
+				term := fmt.Sprintf("%s_%d", w, i)
+				q := s.Dir.NewTermQuery(field, term)
+				not = append(not, q)
+			}
 		}
 	}
 
