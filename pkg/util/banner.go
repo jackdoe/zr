@@ -23,9 +23,15 @@ func BannerLeft(topDashLen int, prefix string, s []string) string {
 	out += "\n"
 	return out
 }
-
 func Center(s string, around rune) string {
 	width := GetWidth()
-	side := strings.Repeat("█", (int(width)-len(s)-2)/2)
+	r := (int(width) - len(s) - 2) / 2
+	symbol := "█"
+	if r < 0 {
+		r = 10
+		// good chance if we didnt get the width its some funky tty
+		symbol = "*"
+	}
+	side := strings.Repeat(symbol, r)
 	return fmt.Sprintf("%s %s %s", side, s, side)
 }
