@@ -9,7 +9,7 @@ builds:
     binary: zr-stackexchange
     id: zr-stackexchange
     env:
-      - CGO_ENABLED=0
+      - CGO_ENABLED=1
     goos:
       - linux
       - darwin
@@ -19,7 +19,7 @@ builds:
     binary: zr-stdin
     id: zr-stdin
     env:
-      - CGO_ENABLED=0
+      - CGO_ENABLED=1
     goos:
       - linux
       - darwin
@@ -29,7 +29,7 @@ builds:
     binary: zr
     id: zr
     env:
-      - CGO_ENABLED=0
+      - CGO_ENABLED=1
     goos:
       - linux
       - darwin
@@ -39,7 +39,7 @@ builds:
     binary: zr-reindex
     id: zr-reindex
     env:
-      - CGO_ENABLED=0
+      - CGO_ENABLED=1
     goos:
       - linux
       - darwin
