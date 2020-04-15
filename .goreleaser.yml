@@ -8,8 +8,6 @@ builds:
   - main: ./cmd/zr-stackexchange/main.go
     binary: zr-stackexchange
     id: zr-stackexchange
-    env:
-      - CGO_ENABLED=0
     goos:
       - linux
       - darwin
@@ -18,8 +16,6 @@ builds:
   - main: ./cmd/zr-stdin/main.go
     binary: zr-stdin
     id: zr-stdin
-    env:
-      - CGO_ENABLED=0
     goos:
       - linux
       - darwin
@@ -28,8 +24,6 @@ builds:
   - main: ./cmd/zr/main.go
     binary: zr
     id: zr
-    env:
-      - CGO_ENABLED=0
     goos:
       - linux
       - darwin
@@ -38,8 +32,6 @@ builds:
   - main: ./cmd/zr-reindex/main.go
     binary: zr-reindex
     id: zr-reindex
-    env:
-      - CGO_ENABLED=0
     goos:
       - linux
       - darwin
