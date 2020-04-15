@@ -11,7 +11,6 @@ builds:
     goos:
       - linux
       - darwin
-      - windows
     goarch:
       - amd64
   - main: ./cmd/zr-stdin/main.go
@@ -20,7 +19,6 @@ builds:
     goos:
       - linux
       - darwin
-      - windows
     goarch:
       - amd64
   - main: ./cmd/zr/main.go
@@ -29,7 +27,6 @@ builds:
     goos:
       - linux
       - darwin
-      - windows
     goarch:
       - amd64
   - main: ./cmd/zr-reindex/main.go
@@ -38,7 +35,6 @@ builds:
     goos:
       - linux
       - darwin
-      - windows
     goarch:
       - amd64
 
@@ -48,6 +44,3 @@ archives:
       darwin: macOS
       386: i386
       amd64: x86_64
-    format_overrides:
-    - goos: windows
-      format: zip
