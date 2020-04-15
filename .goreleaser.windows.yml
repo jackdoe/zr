@@ -26,6 +26,15 @@ builds:
       - windows
     goarch:
       - amd64
+  - main: ./cmd/zr-debug/main.go
+    binary: zr-debug
+    id: zr-debug
+    env:
+      - CGO_ENABLED=1
+    goos:
+      - windows
+    goarch:
+      - amd64
   - main: ./cmd/zr/main.go
     binary: zr
     id: zr

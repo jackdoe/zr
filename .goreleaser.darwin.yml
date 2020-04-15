@@ -35,6 +35,15 @@ builds:
       - amd64
     goos:
       - darwin
+  - main: ./cmd/zr-debug/main.go
+    binary: zr-debug
+    id: zr-debug
+    env:
+      - CGO_ENABLED=1
+    goos:
+      - darwin
+    goarch:
+      - amd64
   - main: ./cmd/zr-reindex/main.go
     binary: zr-reindex
     id: zr-reindex
