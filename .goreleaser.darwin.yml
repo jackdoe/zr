@@ -1,7 +1,7 @@
 changelog:
   skip: true
 checksum:
-  name_template: '{{ .ProjectName }}_darwin_checksums.txt'
+  name_template: '{{ .ProjectName }}_checksums_darwin.txt'
   algorithm: sha256
 env:
   - GO111MODULE=on
