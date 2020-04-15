@@ -8,29 +8,27 @@ builds:
   - main: ./cmd/zr-stackexchange/main.go
     binary: zr-stackexchange
     id: zr-stackexchange
-    goos:
-      - linux
     goarch:
       - amd64
   - main: ./cmd/zr-stdin/main.go
     binary: zr-stdin
     id: zr-stdin
-    goos:
-      - linux
+    env:
+      - CGO_ENABLED=1
     goarch:
       - amd64
   - main: ./cmd/zr/main.go
     binary: zr
     id: zr
-    goos:
-      - linux
+    env:
+      - CGO_ENABLED=1
     goarch:
       - amd64
   - main: ./cmd/zr-reindex/main.go
     binary: zr-reindex
     id: zr-reindex
-    goos:
-      - linux
+    env:
+      - CGO_ENABLED=1
     goarch:
       - amd64
 
@@ -40,3 +38,6 @@ archives:
       darwin: macOS
       386: i386
       amd64: x86_64
+    format_overrides:
+    - goos: windows
+      format: zip
