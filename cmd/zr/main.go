@@ -32,8 +32,8 @@ func (hits ByScore) Len() int      { return len(hits) }
 func (hits ByScore) Swap(i, j int) { hits[i], hits[j] = hits[j], hits[i] }
 func (hits ByScore) Less(i, j int) bool {
 
-	sa := int(hits[i].score + 0.5)
-	sb := int(hits[j].score + 0.5)
+	sa := int(hits[i].score)
+	sb := int(hits[j].score)
 
 	pa := hits[i].popularity
 	pb := hits[j].popularity
