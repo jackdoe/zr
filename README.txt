@@ -14,7 +14,7 @@ or
 ----
 
 Replace .bin with your local bin directory, and replace linux with
-macOS or windows.
+darwin (for macos) or windows.
 
 # 1. download zr
 mkdir -p ~/.bin \
