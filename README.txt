@@ -29,6 +29,7 @@ echo '{"kind": ["public/man","public/rfc"]}' > ~/.zr/config.json
 
 # 4. enjoy
 ~/.bin/zr transmission control protocol
+~/.bin/zr printf
 
 ----
 
