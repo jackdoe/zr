@@ -133,7 +133,7 @@ By default it reads https://raw.githubusercontent.com/jackdoe/zr/master/public.t
 but you can specify any url or - for stdin
 
 $ zr -k public/man printf
-$ zr -k public/rfc tcp
+$ zr -k public/rfc transmission control protocol
 
 # Build the index
 
