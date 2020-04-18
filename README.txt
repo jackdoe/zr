@@ -9,6 +9,29 @@ or
 
   $ asciinema play https://asciinema.org/a/t7bLU9Vfg7MSHMEMTb87GDB3v
 
+# TLDR install
+
+----
+
+Replace .bin with your local bin directory, and replace linux with
+macOS or windows.
+
+# 1. download zr
+mkdir -p ~/.bin \
+   && curl -sL https://github.com/jackdoe/zr/releases/download/v0.0.17/zr_v0.0.17_linux_amd64.tar.gz \
+        | tar --exclude README.txt --exclude LICENSE -C ~/.bin -xzvf -
+
+# 2. download man and rfc indexes
+~/.bin/zr-fetch
+
+# 3. set your preferred order
+echo '{"kind": ["public/man","public/rfc"]}' > ~/.zr/config.json
+
+# 4. enjoy
+~/.bin/zr transmission control protocol
+
+----
+
 # CHANGELOG - 04/2019
 
   * now you can index man pages as well (or any kinds of documents)
