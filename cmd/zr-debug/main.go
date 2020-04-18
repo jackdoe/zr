@@ -35,8 +35,11 @@ func main() {
 
 	sharded := data.NewStore(*root, *kind)
 	defer sharded.Close()
+	if *id != "" {
+		fmt.Printf("EXPCTED SHARD: %d\n\n", sharded.ShardID(*id))
+	}
 
-	for _, store := range sharded.Shards {
+	for shard, store := range sharded.Shards {
 		var doc data.Document
 		if *rid != 0 {
 			if err := store.DB.Model(data.Document{}).Where("row_id=?", *rid).First(&doc).Error; err != nil {
@@ -50,11 +53,13 @@ func main() {
 
 		doc.Body = util.Decompress(doc.Body)
 
+		fmt.Printf(" SHARD:      %d\n", shard)
 		fmt.Printf(" TITLE:      %s\n", doc.Title)
 		fmt.Printf(" TAGS:       %s\n", doc.Tags)
 		fmt.Printf(" DOC ID:     %d\n", doc.RowID)
 		fmt.Printf(" OBJECT ID:  %s\n", doc.ObjectID)
 		fmt.Printf(" INDEXED:    %d\n", doc.Indexed)
+		fmt.Printf(" WEIGHT:     %d\n", store.ReadWeight(int32(doc.RowID)))
 		fmt.Printf("%s\n\n", strings.Repeat("*", 80))
 		os.Stdout.Write(doc.Body)
 

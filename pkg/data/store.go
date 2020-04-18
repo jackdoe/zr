@@ -69,9 +69,13 @@ func (s *Store) BulkUpsert(batch []*Document) {
 }
 
 func (s *Store) ShardFor(objectID string) *Shard {
+	return s.Shards[int(s.ShardID(objectID))]
+}
+
+func (s *Store) ShardID(objectID string) uint32 {
 	h := metro.Hash64Str(objectID, 0)
 	shard := uint32(h) % N_SHARDS
-	return s.Shards[int(shard)]
+	return uint32(shard)
 }
 
 func (s *Store) Close() {

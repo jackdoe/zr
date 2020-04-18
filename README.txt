@@ -112,6 +112,15 @@ $ go install github.com/jackdoe/zr/cmd/zr
 $ go install github.com/jackdoe/zr/cmd/zr-stackexchange
 $ go install github.com/jackdoe/zr/cmd/zr-stdin
 $ go install github.com/jackdoe/zr/cmd/zr-reindex
+$ go install github.com/jackdoe/zr/cmd/zr-fetch
+
+# Download the public index
+Index I build and publish, it includes man pages and RFC
+
+$ zr-fetch
+
+$ zr -k public/man printf
+$ zr -k public/rfc tcp
 
 # Build the index
 

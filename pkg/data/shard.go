@@ -106,6 +106,9 @@ func (s *Shard) MakeQuery(field string, query string) iq.Query {
 		and := []iq.Query{}
 		for _, w := range ws {
 			if len(w) > 0 {
+				if len(w) > MAX_TOKEN_SIZE {
+					w = w[:MAX_TOKEN_SIZE]
+				}
 				term := fmt.Sprintf("%s_%d", w, i)
 				q := s.Dir.NewTermQuery(field, term)
 				and = append(and, q)
