@@ -24,7 +24,7 @@ mkdir -p ~/.bin \
 # 2. download man and rfc indexes
 ~/.bin/zr-fetch
 
-# 3. set your preferred order
+# 3. set your preferred query order
 echo '{"kind": ["public/man","public/rfc"]}' > ~/.zr/config.json
 
 # 4. enjoy
