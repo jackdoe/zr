@@ -45,8 +45,9 @@ func (hits ByScore) Less(i, j int) bool {
 }
 
 func main() {
+	config := util.ReadConfig()
 	root := flag.String("root", util.GetDefaultRoot(), "root")
-	kind := flag.String("k", "man,su,so,godoc", "csv list of indexes to search")
+	kind := flag.String("k", strings.Join(config.Kind, ","), `csv list of indexes to search, read from ~/.zr/config.json {"kind":["so","su","man"..]}`)
 	topN := flag.Int("top", 1, "show top N question threads")
 	debug := flag.Bool("debug", false, "show debug info")
 	flag.Usage = usage

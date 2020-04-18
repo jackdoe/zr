@@ -3,6 +3,7 @@ module github.com/jackdoe/zr
 go 1.14
 
 require (
+	github.com/cheggaaa/pb/v3 v3.0.4
 	github.com/dgryski/go-metro v0.0.0-20180109044635-280f6062b5bc
 	github.com/golang/snappy v0.0.1
 	github.com/jackdoe/go-pager v0.0.0-20200410205908-3cd8effcdd34

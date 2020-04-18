@@ -26,6 +26,15 @@ builds:
       - darwin
     goarch:
       - amd64
+  - main: ./cmd/zr-fetch/main.go
+    binary: zr-fetch
+    id: zr-fetch
+    env:
+      - CGO_ENABLED=1
+    goos:
+      - darwin
+    goarch:
+      - amd64
   - main: ./cmd/zr/main.go
     binary: zr
     id: zr

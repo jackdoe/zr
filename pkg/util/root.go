@@ -11,5 +11,5 @@ func GetDefaultRoot() string {
 		return ""
 	}
 
-	return path.Join(u.HomeDir, ".zr-data")
+	return path.Join(u.HomeDir, ".zr")
 }
