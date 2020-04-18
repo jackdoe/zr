@@ -25,6 +25,7 @@ or
     (bloom search was very interesting, but it needs at least two
     terms to make sense, which is super annoying)
   * add sharding
+  * zr-fetch - a way to download public indexes
 
 # What is it?
 
@@ -114,10 +115,22 @@ $ go install github.com/jackdoe/zr/cmd/zr-stdin
 $ go install github.com/jackdoe/zr/cmd/zr-reindex
 $ go install github.com/jackdoe/zr/cmd/zr-fetch
 
+or you can download the binary from releases/
+
 # Download the public index
-Index I build and publish, it includes man pages and RFC
+You can download and use the public index I build and publish, it
+includes man pages and RFC
 
 $ zr-fetch
+
+This is the equivalent of:
+cat << EOF | zr-fetch -list -
+public/man https://txt.black/~jack/zr-public/man.tar.gz
+public/rfc https://txt.black/~jack/zr-public/rfc.tar.gz
+EOF
+
+By default it reads https://raw.githubusercontent.com/jackdoe/zr/master/public.txt
+but you can specify any url or - for stdin
 
 $ zr -k public/man printf
 $ zr -k public/rfc tcp
