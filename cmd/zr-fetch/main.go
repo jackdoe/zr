@@ -127,7 +127,7 @@ func load(list string) io.Reader {
 
 func main() {
 	root := flag.String("root", util.GetDefaultRoot(), "root")
-	list := flag.String("list", "https://github.com/jackdoe/zr/blob/master/public.txt", "url or - for stdin, each line has to be 'name url'")
+	list := flag.String("list", "https://raw.githubusercontent.com/jackdoe/zr/master/public.txt", "url or - for stdin, each line has to be 'name url'")
 	flag.Parse()
 	if *root == "" {
 		log.Fatal("need root")
