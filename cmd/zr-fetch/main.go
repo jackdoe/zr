@@ -49,7 +49,8 @@ func Untar(dst string, r io.Reader) error {
 		case tar.TypeDir:
 			// ignore
 		case tar.TypeReg:
-			parts := strings.Split(header.Name, string(os.PathSeparator))
+			name := strings.ReplaceAll(header.Name, "/", string(os.PathSeparator))
+			parts := strings.Split(name, string(os.PathSeparator))
 			if len(parts) < 2 {
 				return errors.New("invalid path " + header.Name)
 			}
@@ -82,12 +83,10 @@ func Untar(dst string, r io.Reader) error {
 			if _, err := io.Copy(f, tr); err != nil {
 				return err
 			}
-
+			f.Close()
 			if err := os.Rename(temp, target); err != nil {
 				return err
 			}
-
-			f.Close()
 		}
 	}
 }
