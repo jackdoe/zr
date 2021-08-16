@@ -197,6 +197,10 @@ func (s *Shard) Reindex(batchSize int) {
 		for _, d := range docs {
 			d.Body = util.Decompress(d.Body)
 			ids = append(ids, d.RowID)
+			err := s.WriteWeight(d.RowID, int32(d.Popularity))
+			if err != nil {
+				panic(err)
+			}
 		}
 
 		err := s.Dir.Index(toDocumentWithID(docs)...)

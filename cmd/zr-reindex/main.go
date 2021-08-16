@@ -14,7 +14,7 @@ import (
 func main() {
 	batchSize := flag.Int("batch", 10000, "batch size")
 	root := flag.String("root", util.GetDefaultRoot(), "root")
-	kind := flag.String("k", "unknown", "kind of object (prependet to the id)")
+	kind := flag.String("k", "unknown", "kind of object (prepended to the id)")
 	profBind := flag.String("pprof-bind", "", "bind pprof (e.g. localhost:6060)")
 	flag.Parse()
 
