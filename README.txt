@@ -70,7 +70,7 @@ only tested it with SO and superuser.
 
 # Why?
 
-Since I went to live in the tty (https://txt.black/~jack/tty.txt), I
+Since I went to live in the tty (https://punkjazz.org/jack/tty.txt), I
 have been trying to reduce my dependency on the web, but it is quite
 often that I have to use StackOverflow to copy pasta some code.
 
@@ -149,8 +149,8 @@ $ zr-fetch
 
 This is the equivalent of:
 cat << EOF | zr-fetch -list -
-public/man https://txt.black/~jack/zr-public/man.tar.gz
-public/rfc https://txt.black/~jack/zr-public/rfc.tar.gz
+public/man https://punkjazz.org/jack/zr-public/man.tar.gz
+public/rfc https://punkjazz.org/jack/zr-public/rfc.tar.gz
 EOF
 
 By default it reads https://raw.githubusercontent.com/jackdoe/zr/master/public.txt
