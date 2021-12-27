@@ -3,11 +3,11 @@
 
 Check out the demo at:
 
-  https://asciinema.org/a/t7bLU9Vfg7MSHMEMTb87GDB3v
+  https://asciinema.org/a/Gban33qB188dK5P4yBcooubEw 
 
 or
 
-  $ asciinema play https://asciinema.org/a/t7bLU9Vfg7MSHMEMTb87GDB3v
+  $ asciinema play https://asciinema.org/a/Gban33qB188dK5P4yBcooubEw 
 
 # TLDR install
 
