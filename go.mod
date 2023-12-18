@@ -23,6 +23,6 @@ require (
 	github.com/rekki/go-query-analyze v0.0.0-20200910132837-6616cf9cc811
 	github.com/rekki/go-query-index v0.0.0-20210614071208-58d057600a01
 	github.com/ssor/bom v0.0.0-20170718123548-6386211fdfcf // indirect
-	golang.org/x/crypto v0.1.0
+	golang.org/x/crypto v0.17.0
 	jaytaylor.com/html2text v0.0.0-20211105163654-bc68cce691ba
 )
